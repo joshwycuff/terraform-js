@@ -28,6 +28,7 @@ export const config: _IConfig = {
     logging: {
         level: 'warning',
     },
+    commitId: '',
 };
 
 const CONFIG_STACK = [cloneDeep(config)];

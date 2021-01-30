@@ -1,9 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { NULL } from '../constants'; // just making sure constants get evaluated first
 import { compileScriptSpec, getScriptSpec } from './terrascript';
-import { stackConfig } from '../config/config';
+import { config, stackConfig, updateConfig } from '../config/config';
 import { runScript } from './runner';
 import { ISpec } from '../interfaces/spec';
+import { getCommitId } from '../git/git';
 
 /**
  * @param spec
@@ -29,6 +30,9 @@ export async function run() {
     const groupOrWorkspaceName = '*';
     const spec = await compileScriptSpec(await getScriptSpec('./terrascript.yml'));
     stackConfig(spec.config || {});
+    if (config.commitId) {
+        updateConfig({ env: { [config.commitId]: await getCommitId() } });
+    }
     for (const workspace of getWorkspaces(spec, groupOrWorkspaceName)) {
         await runScript(spec, scriptName, workspace);
     }
