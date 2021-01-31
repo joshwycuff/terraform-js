@@ -42,11 +42,7 @@ export class Terraform {
 
     // region Terraform commands
     async apply(args?: TerraformArgumentsLike, get = false) {
-        const tfArgs = new TerraformArguments(args);
-        if (this.autoApprove || this.autoApproveApply) {
-            tfArgs.addFlag('-auto-approve');
-        }
-        return this.subcommand('apply', tfArgs, get);
+        return this.subcommand('apply', args, get);
     }
 
     async console(args?: TerraformArgumentsLike, get = false) {
@@ -54,11 +50,7 @@ export class Terraform {
     }
 
     async destroy(args?: TerraformArgumentsLike, get = false) {
-        const tfArgs = new TerraformArguments(args);
-        if (this.autoApprove || this.autoApproveDestroy) {
-            tfArgs.addFlag('-auto-approve');
-        }
-        return this.subcommand('destroy', tfArgs, get);
+        return this.subcommand('destroy', args, get);
     }
 
     async fmt(args?: TerraformArgumentsLike, get = false) {
@@ -82,15 +74,7 @@ export class Terraform {
     }
 
     async init(args?: TerraformArgumentsLike, get = false) {
-        const tfArgs = new TerraformArguments(args);
-        if (Object.keys(this.backendConfig).length > 0) {
-            Object.keys(this.backendConfig).forEach((key) => {
-                tfArgs.addOption(`-backend-config="${key}=${this.backendConfig[key]}"`);
-            });
-        } else if (this.backendConfigFile) {
-            tfArgs.addOption(`-backend-config="${this.backendConfigFile}"`);
-        }
-        return this.subcommand('init', tfArgs, get);
+        return this.subcommand('init', args, get);
     }
 
     async login(args?: TerraformArgumentsLike, get = false) {
@@ -373,7 +357,28 @@ export class Terraform {
             .concat(new TerraformArguments(args).getArray())
             .filter((x) => `${x}`)
             .join(' ');
-        return get ? this.execute(subargs) : this.run(subargs);
+        const tfArgs = new TerraformArguments(subargs);
+        const arg1 = tfArgs.getArray()[0];
+        if (arg1 === 'init') {
+            if (Object.keys(this.backendConfig).length > 0) {
+                Object.keys(this.backendConfig).forEach((key) => {
+                    tfArgs.addOption(`-backend-config="${key}=${this.backendConfig[key]}"`);
+                });
+            } else if (this.backendConfigFile) {
+                tfArgs.addOption(`-backend-config="${this.backendConfigFile}"`);
+            }
+        }
+        if (arg1 === 'apply') {
+            if (this.autoApprove || this.autoApproveApply) {
+                tfArgs.addFlag('-auto-approve');
+            }
+        }
+        if (arg1 === 'destroy') {
+            if (this.autoApprove || this.autoApproveApply) {
+                tfArgs.addFlag('-auto-approve');
+            }
+        }
+        return get ? this.execute(tfArgs) : this.run(tfArgs);
     }
     // endregion
 }
