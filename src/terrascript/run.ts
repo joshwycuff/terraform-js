@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { merge } from 'lodash';
+import fs from 'fs';
+import { copySync } from 'fs-extra';
 import { NULL } from '../constants'; // just making sure constants get evaluated first
 import { compileScriptSpec, getScriptSpec } from './terrascript';
 import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
@@ -24,6 +26,15 @@ function getWorkspaces(spec: ISpec, groupOrWorkspaceName: string) {
     }
     return [groupOrWorkspaceName];
 }
+/**
+ * @param spec
+ * @param workspaceName
+ */
+export async function initWorkspace(spec: ISpec, workspaceName: string) {
+    const workspace = spec.workspaces[workspaceName];
+    await fs.mkdirSync(workspace.workingDirectory, { recursive: true });
+    await copySync(config.infrastructureDirectory, workspace.workingDirectory);
+}
 
 /**
  * @param groupOrWorkspace
@@ -42,6 +53,7 @@ export async function run(
         updateConfig({ env: { [config.commitId]: await getCommitId() } });
     }
     for (const workspace of getWorkspaces(spec, groupOrWorkspace)) {
+        await initWorkspace(spec, workspace);
         stackConfig(spec.workspaces[workspace]?.config || {});
         updateConfig({ env: { TF_WORKSPACE: spec.workspaces[workspace].fullName } });
         if (isCommand) {

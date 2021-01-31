@@ -1,31 +1,12 @@
-import * as fs from 'fs';
 import { merge } from 'lodash';
-import { copySync } from 'fs-extra';
 import { ISpec } from '../interfaces/spec';
-import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
+import { config } from '../config/config';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
 import { Hash } from '../../dist/types';
 import { run } from '../command/command';
 import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
-
-/**
- * @param tf
- * @param spec
- * @param workspace
- * @param workspaceName
- */
-export async function initWorkspace(tf: Terraform, spec: ISpec, workspaceName: string) {
-    const workspace = spec.workspaces[workspaceName];
-    log.silly(tf);
-    log.silly(JSON.stringify(spec, null, 2));
-    log.silly(workspaceName);
-    log.silly(JSON.stringify(workspace, null, 2));
-    log.silly(workspace.workingDirectory);
-    await fs.mkdirSync(workspace.workingDirectory, { recursive: true });
-    await copySync(config.infrastructureDirectory, workspace.workingDirectory);
-}
 
 /**
  * @param tf
@@ -105,7 +86,6 @@ export async function runScript(spec: ISpec, scriptName: string, workspaceName: 
         spec,
         workspace: workspaceName,
     };
-    await initWorkspace(tf, spec, workspaceName);
     // setup hook
     if (context.spec.hooks && context.spec.hooks.setup) {
         log.info('Running setup hook');
