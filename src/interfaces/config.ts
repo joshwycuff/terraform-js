@@ -15,6 +15,7 @@ interface IEnv extends Hash<string | undefined> {
     TF_IGNORE?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _IConfig extends Hash<any> {
     infrastructureDirectory: string;
     workingDirectory: string;
@@ -24,6 +25,8 @@ export interface _IConfig extends Hash<any> {
     };
     env: IEnv;
     autoApprove: boolean;
+    autoApproveApply: boolean;
+    autoApproveDestroy: boolean;
     backendConfig: Hash;
     backendConfigFile: string;
     logging: {
@@ -41,6 +44,8 @@ export interface IConfig extends Hash<any> {
     };
     env?: IEnv;
     autoApprove?: boolean;
+    autoApproveApply?: boolean;
+    autoApproveDestroy?: boolean;
     backendConfig?: Hash;
     backendConfigFile?: string;
     logging?: {

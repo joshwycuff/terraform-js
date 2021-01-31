@@ -32,7 +32,7 @@ export async function initWorkspace(tf: Terraform, spec: ISpec, workspaceName: s
  * @param context
  * @param command
  */
-async function runCommand(tf: Terraform, context: IContext, command: string | Hash) {
+export async function runCommand(tf: Terraform, context: IContext, command: string | Hash) {
     log.info(`Running command: ${JSON.stringify(command)}`);
     const workspace = context.spec.workspaces[context.workspace];
     if (typeof command === 'string') {
@@ -98,8 +98,6 @@ export async function runCommands(
  */
 export async function runScript(spec: ISpec, scriptName: string, workspaceName: string) {
     const workspace = spec.workspaces[workspaceName];
-    stackConfig(workspace?.config || {});
-    updateConfig({ env: { TF_WORKSPACE: workspace.fullName } });
     const tf = new Terraform({ cwd: workspace.workingDirectory });
     const context: IContext = {
         tf,
@@ -119,5 +117,4 @@ export async function runScript(spec: ISpec, scriptName: string, workspaceName: 
         log.info('Running teardown hook');
         await runCommands(tf, context, context.spec.hooks.teardown);
     }
-    unstackConfig();
 }

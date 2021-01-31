@@ -4,7 +4,7 @@
   "main": "./dist/index.js",
   "license": "MIT",
   "scripts": {
-    "try": "yarn build && node dist/index.js",
+    "try": "yarn build && ./bin/run",
     "build": "tsc",
     "commit": "git cz",
     "check:all": "yarn check:format && yarn check:lint && yarn check:test",
@@ -66,6 +66,9 @@
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
+    "@jahed/terraform": "^0.12",
+    "@oclif/dev-cli": "^1",
+    "@oclif/test": "^1",
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/commit-analyzer": "^8.0.1",
     "@semantic-release/git": "^9.0.0",
@@ -76,6 +79,7 @@
     "@types/jest": "^26.0.14",
     "@types/js-yaml": "^4.0.0",
     "@types/lodash": "^4.14.168",
+    "@types/node": "^14.14.22",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.3.0",
@@ -83,6 +87,8 @@
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.10.0",
     "eslint-config-airbnb-typescript": "^11.0.0",
+    "eslint-config-oclif": "^3.1.0",
+    "eslint-config-oclif-typescript": "^0.2.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsdoc": "^30.6.3",
     "eslint-plugin-jsx-a11y": "^6.3.1",
@@ -91,15 +97,21 @@
     "eslint-plugin-unicorn": "^22.0.0",
     "husky": "^4.3.0",
     "jest": "^26.4.2",
+    "nyc": "^15.1.0",
     "prettier": "^2.1.2",
     "ts-jest": "^26.4.0",
-    "typescript": "^4.0.3",
-    "@jahed/terraform": "^0.12"
+    "ts-node": "^9.1.1",
+    "typescript": "^4.0.3"
   },
   "dependencies": {
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/plugin-help": "^3",
     "fs-extra": "^9.1.0",
     "js-yaml": "^4.0.0",
     "lodash": "^4.17.20",
+    "oclif": "^1.16.1",
+    "tslib": "^1",
     "winston": "^3.3.3"
   }
 }

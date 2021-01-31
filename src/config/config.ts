@@ -23,6 +23,8 @@ export const config: _IConfig = {
         TF_IGNORE: '',
     },
     autoApprove: false,
+    autoApproveApply: false,
+    autoApproveDestroy: false,
     backendConfig: {},
     backendConfigFile: '',
     logging: {

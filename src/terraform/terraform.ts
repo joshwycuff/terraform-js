@@ -22,6 +22,10 @@ export class Terraform {
 
     autoApprove: boolean;
 
+    autoApproveApply: boolean;
+
+    autoApproveDestroy: boolean;
+
     backendConfig: Hash;
 
     backendConfigFile?: string;
@@ -30,6 +34,8 @@ export class Terraform {
         this.command = new TerraformCommand(command);
         this.options = merge({ env: process.env }, { env: config.env }, options);
         this.autoApprove = config.autoApprove;
+        this.autoApproveApply = config.autoApproveApply;
+        this.autoApproveDestroy = config.autoApproveDestroy;
         this.backendConfig = config.backendConfig;
         this.backendConfigFile = config.backendConfigFile;
     }
@@ -37,7 +43,7 @@ export class Terraform {
     // region Terraform commands
     async apply(args?: TerraformArgumentsLike, get = false) {
         const tfArgs = new TerraformArguments(args);
-        if (this.autoApprove) {
+        if (this.autoApprove || this.autoApproveApply) {
             tfArgs.addFlag('-auto-approve');
         }
         return this.subcommand('apply', tfArgs, get);
@@ -49,7 +55,7 @@ export class Terraform {
 
     async destroy(args?: TerraformArgumentsLike, get = false) {
         const tfArgs = new TerraformArguments(args);
-        if (this.autoApprove) {
+        if (this.autoApprove || this.autoApproveDestroy) {
             tfArgs.addFlag('-auto-approve');
         }
         return this.subcommand('destroy', tfArgs, get);

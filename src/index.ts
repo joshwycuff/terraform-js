@@ -1,21 +1,32 @@
+import { Command, flags } from '@oclif/command';
+
 import { run } from './terrascript/run';
 
-(async () => {
-    await run();
-})();
+class Terrascript extends Command {
+    static description = 'describe the command here';
 
-// import { Terraform } from './terraform/terraform';
-//
-// const tf = new Terraform({ cwd: 'tmp' });
-//
-// (async () => {
-//     await tf.set_TF_VAR_name('filename', 'filename.txt');
-//     // await tf.version();
-//     // await tf.init();
-//     // await tf.apply();
-//     // await tf.destroy();
-//     // console.log(await tf.getOutputJson());
-//     // console.log(await tf.getShowJson());
-//     // console.log(await tf.getStateListArray());
-//     // await tf.graphSvg();
-// })();
+    static strict = false;
+
+    static flags = {
+        version: flags.version({ char: 'v' }),
+        help: flags.help({ char: 'h' }),
+    };
+
+    static args = [
+        { name: 'groupOrWorkspace', required: true },
+        { name: 'scriptOrCommand', required: true },
+        { name: 'commandArgs' },
+    ];
+
+    async run() {
+        const { args, flags } = this.parse(Terrascript);
+
+        const { groupOrWorkspace } = args;
+        const { scriptOrCommand } = args;
+        const commandArgs = this.argv.slice(2);
+
+        await run(groupOrWorkspace, scriptOrCommand, commandArgs);
+    }
+}
+
+export = Terrascript;
