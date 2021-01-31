@@ -6,6 +6,7 @@ type IGroups = Hash<Array<string>>;
 interface IHooks {
     setup?: Array<string | Hash>;
     'pre-apply'?: Array<string | Hash>;
+    'pre-destroy'?: Array<string | Hash>;
     teardown?: Array<string | Hash>;
 }
 

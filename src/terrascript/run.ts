@@ -26,8 +26,8 @@ function getWorkspaces(spec: ISpec, groupOrWorkspaceName: string) {
  *
  */
 export async function run() {
-    const scriptName = 'version';
-    const groupOrWorkspaceName = '*';
+    const scriptName = 'init';
+    const groupOrWorkspaceName = 'dev';
     const spec = await compileScriptSpec(await getScriptSpec('./terrascript.yml'));
     stackConfig(spec.config || {});
     if (config.commitId) {

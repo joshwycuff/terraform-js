@@ -37,14 +37,14 @@ export class Command {
     }
 
     async execute() {
-        log.info(`Executing: "${this}"`);
+        log.debug(`Executing: "${this}"`);
         log.debug(`cwd: ${this.options.cwd}`);
         log.silly(`env: ${JSON.stringify(this.options.env, null, 2)}`);
         return _execute(this.get(), this.options.cwd, this.options.env);
     }
 
     async run() {
-        log.info(`Running: "${this}"`);
+        log.debug(`Running: "${this}"`);
         log.debug(`cwd: ${this.options.cwd}`);
         log.silly(`env: ${JSON.stringify(this.options.env, null, 2)}`);
         const command = this.command.get();

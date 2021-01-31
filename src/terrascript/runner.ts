@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import { merge } from 'lodash';
 import { copySync } from 'fs-extra';
 import { ISpec } from '../interfaces/spec';
-import { config, stackConfig, unstackConfig } from '../config/config';
+import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
@@ -45,7 +45,16 @@ async function runCommand(tf: Terraform, context: IContext, command: string | Ha
                 }
             }
         }
-        // await tf.subcommand(command);
+        // pre-destroy hook
+        if (command.split(' ').includes('destroy')) {
+            if (context.spec.hooks && context.spec.hooks['pre-destroy']) {
+                log.info('Running pre-destroy hook');
+                for (const hookCommand of context.spec.hooks['pre-destroy']) {
+                    await runCommand(tf, context, hookCommand);
+                }
+            }
+        }
+        await tf.subcommand(command);
     } else if (typeof command === 'object') {
         if ('function' in command) {
             log.info(`Running function: ${command.function}`);
@@ -90,6 +99,7 @@ export async function runCommands(
 export async function runScript(spec: ISpec, scriptName: string, workspaceName: string) {
     const workspace = spec.workspaces[workspaceName];
     stackConfig(workspace?.config || {});
+    updateConfig({ env: { TF_WORKSPACE: workspace.fullName } });
     const tf = new Terraform({ cwd: workspace.workingDirectory });
     const context: IContext = {
         tf,
