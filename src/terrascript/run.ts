@@ -91,7 +91,7 @@ export async function run(
                     cwd: spec.workspaces[workspace].workingDirectory,
                     env: merge(process.env, config.env) as Hash,
                 });
-                await tf.run(commandArgs);
+                await tf.subcommand(commandArgs[0], commandArgs.slice(1));
             } else {
                 await runCommand(command, commandArgs, {
                     cwd: spec.workspaces[workspace].workingDirectory,
