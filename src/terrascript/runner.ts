@@ -4,7 +4,7 @@ import { config } from '../config/config';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
-import { Hash } from '../../dist/types';
+import { Hash } from '../interfaces/types';
 import { run } from '../command/command';
 import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
 

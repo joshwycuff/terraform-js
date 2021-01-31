@@ -9,7 +9,8 @@ import { runScript } from './runner';
 import { run as runCommand } from '../command/command';
 import { ISpec } from '../interfaces/spec';
 import { getCommitId } from '../git/git';
-import { Hash } from '../../dist/types';
+import { Hash } from '../interfaces/types';
+import { Terraform } from '../terraform/terraform';
 
 /**
  * @param spec
@@ -46,7 +47,6 @@ export async function run(
     scriptOrCommand: string,
     commandArgs?: Array<string>,
 ) {
-    const isCommand = Array.isArray(commandArgs) && commandArgs.length > 0;
     const spec = await compileScriptSpec(await getScriptSpec('./terrascript.yml'));
     stackConfig(spec.config || {});
     if (config.commitId) {
@@ -56,12 +56,23 @@ export async function run(
         await initWorkspace(spec, workspace);
         stackConfig(spec.workspaces[workspace]?.config || {});
         updateConfig({ env: { TF_WORKSPACE: spec.workspaces[workspace].fullName } });
-        if (isCommand) {
+        if (scriptOrCommand === '--config') {
+            console.log(config);
+        } else if (Array.isArray(commandArgs) && commandArgs.length > 0) {
             const command = scriptOrCommand === '-' ? 'terraform' : scriptOrCommand;
-            await runCommand(command, commandArgs, {
-                cwd: spec.workspaces[workspace].workingDirectory,
-                env: merge(process.env, config.env) as Hash,
-            });
+            if (scriptOrCommand === '-') {
+                console.log(config);
+                const tf = new Terraform({
+                    cwd: spec.workspaces[workspace].workingDirectory,
+                    env: merge(process.env, config.env) as Hash,
+                });
+                await tf.run(commandArgs);
+            } else {
+                await runCommand(command, commandArgs, {
+                    cwd: spec.workspaces[workspace].workingDirectory,
+                    env: merge(process.env, config.env) as Hash,
+                });
+            }
         } else {
             await runScript(spec, scriptOrCommand, workspace);
         }

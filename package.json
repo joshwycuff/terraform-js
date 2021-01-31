@@ -103,6 +103,6 @@
     "winston": "^3.3.3"
   },
   "bin": {
-    "terrascript": "./dist/cli.js"
+    "terrascript": "./dist/cli/cli.js"
   }
 }
