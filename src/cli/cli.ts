@@ -33,6 +33,7 @@ async function main() {
         await runTerrascript(group, cmd, args);
     } catch (error) {
         log.error(error);
+        log.error(error.stack);
         process.exit(1);
     }
 }

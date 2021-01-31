@@ -4,7 +4,7 @@ import { _IConfig, IConfig } from '../interfaces/config';
 
 export const config: _IConfig = {
     infrastructureDirectory: process.cwd(),
-    workingDirectory: process.cwd(),
+    tmpDirectory: '',
     command: {
         path: '',
         name: 'terraform',

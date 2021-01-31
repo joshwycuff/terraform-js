@@ -2,7 +2,8 @@
 import { merge } from 'lodash';
 import fs from 'fs';
 import { copySync } from 'fs-extra';
-import { NULL } from '../constants'; // just making sure constants get evaluated first
+import path from 'path';
+import { NULL, ORIGINAL_WORKING_DIRECTORY } from '../constants'; // just making sure constants get evaluated first
 import { compileScriptSpec, getScriptSpec } from './terrascript';
 import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
 import { runScript } from './runner';
@@ -27,6 +28,28 @@ function getWorkspaces(spec: ISpec, groupOrWorkspaceName: string) {
     }
     return [groupOrWorkspaceName];
 }
+
+/**
+ * @param spec
+ * @param workspace
+ */
+function getWorkspaceDirectory(spec: ISpec, workspace: string) {
+    const owd = ORIGINAL_WORKING_DIRECTORY;
+    const tmp = config.tmpDirectory;
+    const workspaceFullName = spec.workspaces[workspace].fullName;
+    if (tmp !== '') {
+        if (path.isAbsolute(tmp)) {
+            return path.join(tmp, workspaceFullName);
+        }
+        return path.join(owd, tmp, workspaceFullName);
+    }
+    const id = config.infrastructureDirectory;
+    if (path.isAbsolute(id)) {
+        return id;
+    }
+    return path.join(owd, id);
+}
+
 /**
  * @param spec
  * @param workspaceName
@@ -53,15 +76,17 @@ export async function run(
         updateConfig({ env: { [config.commitId]: await getCommitId() } });
     }
     for (const workspace of getWorkspaces(spec, groupOrWorkspace)) {
-        await initWorkspace(spec, workspace);
         stackConfig(spec.workspaces[workspace]?.config || {});
         updateConfig({ env: { TF_WORKSPACE: spec.workspaces[workspace].fullName } });
+        spec.workspaces[workspace].workingDirectory = getWorkspaceDirectory(spec, workspace);
+        if (spec.workspaces[workspace].useTmpDir) {
+            await initWorkspace(spec, workspace);
+        }
         if (scriptOrCommand === '--config') {
             console.log(config);
         } else if (Array.isArray(commandArgs) && commandArgs.length > 0) {
             const command = scriptOrCommand === '-' ? 'terraform' : scriptOrCommand;
             if (scriptOrCommand === '-') {
-                console.log(config);
                 const tf = new Terraform({
                     cwd: spec.workspaces[workspace].workingDirectory,
                     env: merge(process.env, config.env) as Hash,
@@ -73,6 +98,11 @@ export async function run(
                     env: merge(process.env, config.env) as Hash,
                 });
             }
+        } else if (!spec.scripts || !Object.keys(spec.scripts).includes(scriptOrCommand)) {
+            await runCommand(scriptOrCommand, [], {
+                cwd: spec.workspaces[workspace].workingDirectory,
+                env: merge(process.env, config.env) as Hash,
+            });
         } else {
             await runScript(spec, scriptOrCommand, workspace);
         }

@@ -18,7 +18,7 @@ interface IEnv extends Hash<string | undefined> {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface _IConfig extends Hash<any> {
     infrastructureDirectory: string;
-    workingDirectory: string;
+    tmpDirectory: string;
     command: {
         path: string;
         name: string;
@@ -37,7 +37,7 @@ export interface _IConfig extends Hash<any> {
 
 export interface IConfig extends Hash<any> {
     infrastructureDirectory?: string;
-    workingDirectory?: string;
+    tmpDirectory?: string;
     command?: {
         path?: string;
         name?: string;
