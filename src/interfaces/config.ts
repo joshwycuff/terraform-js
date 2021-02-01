@@ -24,6 +24,8 @@ export interface _IConfig extends Hash<any> {
         name: string;
     };
     env: IEnv;
+    tfVars: Hash;
+    tfVarsFiles: Array<string>;
     autoApprove: boolean;
     autoApproveApply: boolean;
     autoApproveDestroy: boolean;
@@ -43,6 +45,8 @@ export interface IConfig extends Hash<any> {
         name?: string;
     };
     env?: IEnv;
+    tfVars?: Hash;
+    tfVarsFiles?: Array<string>;
     autoApprove?: boolean;
     autoApproveApply?: boolean;
     autoApproveDestroy?: boolean;

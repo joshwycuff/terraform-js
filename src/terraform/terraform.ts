@@ -20,6 +20,10 @@ export class Terraform {
 
     options: CommandOptions;
 
+    tfVars: Hash;
+
+    tfVarsFiles: Array<string>;
+
     autoApprove: boolean;
 
     autoApproveApply: boolean;
@@ -33,6 +37,8 @@ export class Terraform {
     constructor(options?: CommandOptions, command: TerraformCommandLike = config.command) {
         this.command = new TerraformCommand(command);
         this.options = merge({ env: process.env }, { env: config.env }, options);
+        this.tfVars = config.tfVars;
+        this.tfVarsFiles = config.tfVarsFiles;
         this.autoApprove = config.autoApprove;
         this.autoApproveApply = config.autoApproveApply;
         this.autoApproveDestroy = config.autoApproveDestroy;
@@ -368,9 +374,23 @@ export class Terraform {
                 tfArgs.addOption(`-backend-config="${this.backendConfigFile}"`);
             }
         }
+        if (arg1 === 'plan') {
+            for (const key of Object.keys(this.tfVars)) {
+                tfArgs.addOption(`-var=${key}=${this.tfVars[key]}`);
+            }
+            for (const key of this.tfVarsFiles) {
+                tfArgs.addOption(`-var-file=${key}`);
+            }
+        }
         if (arg1 === 'apply') {
             if (this.autoApprove || this.autoApproveApply) {
                 tfArgs.addFlag('-auto-approve');
+            }
+            for (const key of Object.keys(this.tfVars)) {
+                tfArgs.addOption(`-var=${key}=${this.tfVars[key]}`);
+            }
+            for (const key of this.tfVarsFiles) {
+                tfArgs.addOption(`-var-file=${key}`);
             }
         }
         if (arg1 === 'destroy') {

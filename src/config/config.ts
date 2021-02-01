@@ -22,6 +22,8 @@ export const config: _IConfig = {
         TF_CLI_CONFIG_FILE: '',
         TF_IGNORE: '',
     },
+    tfVars: {},
+    tfVarsFiles: [],
     autoApprove: false,
     autoApproveApply: false,
     autoApproveDestroy: false,
