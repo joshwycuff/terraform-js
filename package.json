@@ -15,7 +15,7 @@
     "fix:format": "prettier --write src/**/*.ts",
     "fix:lint": "eslint --fix src/",
     "test": "jest --no-watch tests/",
-    "prepublishOnly": "yarn check:all && yarn build"
+    "prepublishOnly": "yarn build"
   },
   "config": {
     "commitizen": {
