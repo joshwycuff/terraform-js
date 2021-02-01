@@ -64,8 +64,10 @@ export function stackConfig(inputConfig: IConfig) {
  *
  */
 export function unstackConfig() {
-    CONFIG_STACK.pop();
-    setTop();
+    if (CONFIG_STACK.length > 1) {
+        CONFIG_STACK.pop();
+        setTop();
+    }
 }
 
 /**
