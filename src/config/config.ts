@@ -28,7 +28,7 @@ export const config: _IConfig = {
     backendConfig: {},
     backendConfigFile: '',
     logging: {
-        level: 'warning',
+        level: 'warn',
     },
     commitId: '',
 };

@@ -30,7 +30,7 @@ export interface _IConfig extends Hash<any> {
     backendConfig: Hash;
     backendConfigFile: string;
     logging: {
-        level: 'silly' | 'debug' | 'info' | 'warning' | 'error';
+        level: 'silly' | 'debug' | 'info' | 'warn' | 'error';
     };
     commitId: string;
 }
@@ -49,7 +49,7 @@ export interface IConfig extends Hash<any> {
     backendConfig?: Hash;
     backendConfigFile?: string;
     logging?: {
-        level?: 'silly' | 'debug' | 'info' | 'warning' | 'error';
+        level?: 'silly' | 'debug' | 'info' | 'warn' | 'error';
     };
     commitId?: string;
 }

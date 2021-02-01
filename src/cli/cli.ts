@@ -2,6 +2,7 @@
 
 import { runTerrascript } from './commands/terrascript';
 import { log } from '../logging/logging';
+import { init } from './commands/init';
 
 /**
  *
@@ -30,7 +31,11 @@ async function main() {
             await help();
             process.exit(1);
         }
-        await runTerrascript(group, cmd, args);
+        if (group === '--init') {
+            await init();
+        } else {
+            await runTerrascript(group, cmd, args);
+        }
     } catch (error) {
         log.error(error);
         log.error(error.stack);
