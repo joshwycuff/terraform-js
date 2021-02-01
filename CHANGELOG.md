@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/joshwycuff/terrascript/compare/v1.0.0...v1.0.1) (2021-02-01)
+
+
+### Bug Fixes
+
+* add node modules bins to path ([12b2c53](https://github.com/joshwycuff/terrascript/commit/12b2c531817b193ea30e0e330af8921d71ce309d))
+* do not unstack last config ([d36a79a](https://github.com/joshwycuff/terrascript/commit/d36a79a70df0f74a692fc486dbbe0f185f2c8fc4))
+
 # 1.0.0 (2021-02-01)
 
 
