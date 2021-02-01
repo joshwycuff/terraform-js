@@ -3,6 +3,8 @@ import { merge } from 'lodash';
 import fs from 'fs';
 import { copySync } from 'fs-extra';
 import path from 'path';
+import { add } from 'winston';
+import glob from 'glob';
 import { NULL, ORIGINAL_WORKING_DIRECTORY } from '../constants'; // just making sure constants get evaluated first
 import { compileScriptSpec, getScriptSpec } from './terrascript';
 import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
@@ -61,6 +63,28 @@ export async function initWorkspace(spec: ISpec, workspaceName: string) {
 }
 
 /**
+ *
+ */
+async function addNodeModulesBinsToPath() {
+    let processEnvPath = process?.env?.PATH?.split(':') || [];
+    return new Promise((resolve, reject) => {
+        try {
+            glob('**/node_modules/.bin', {}, (error, files) => {
+                if (error) {
+                    reject(error);
+                }
+                processEnvPath = files.map((f) => path.resolve(f)).concat(processEnvPath);
+                const pathWithBins = processEnvPath.join(':');
+                stackConfig({ env: { PATH: pathWithBins } });
+                resolve(null);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+/**
  * @param groupOrWorkspace
  * @param scriptOrCommand
  * @param commandArgs
@@ -70,6 +94,7 @@ export async function run(
     scriptOrCommand: string,
     commandArgs?: Array<string>,
 ) {
+    await addNodeModulesBinsToPath();
     const spec = await compileScriptSpec(await getScriptSpec('./terrascript.yml'));
     stackConfig(spec.config || {});
     if (config.commitId) {
