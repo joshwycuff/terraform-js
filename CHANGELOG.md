@@ -1,3 +1,11 @@
+## [1.0.2](https://github.com/joshwycuff/terrascript/compare/v1.0.1...v1.0.2) (2021-02-01)
+
+
+### Bug Fixes
+
+* add cwd and condition options to commands ([7a959d4](https://github.com/joshwycuff/terrascript/commit/7a959d477f99726bd9d3a04551a7586925f9924a))
+* add tfvars and tfvarsfiles ([32f6c1b](https://github.com/joshwycuff/terrascript/commit/32f6c1becab4b1e397f2b1376689c68c4eb3908a))
+
 ## [1.0.1](https://github.com/joshwycuff/terrascript/compare/v1.0.0...v1.0.1) (2021-02-01)
 
 
