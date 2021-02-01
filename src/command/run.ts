@@ -1,4 +1,6 @@
 import { spawn } from 'child_process';
+import { ExitCode } from '../interfaces/types';
+import { log } from '../logging/logging';
 
 /**
  * @param command
@@ -12,7 +14,14 @@ export async function run(
     args: string[],
     cwd?: string,
     env?: { [key: string]: string },
-) {
+): Promise<ExitCode> {
+    log.silly(
+        JSON.stringify({
+            command,
+            args,
+            cwd,
+        }),
+    );
     const stdio = 'inherit';
     return new Promise((resolve, reject) => {
         const child = spawn(command, args, { cwd, env, stdio });

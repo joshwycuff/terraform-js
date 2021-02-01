@@ -1,10 +1,10 @@
 import { merge } from 'lodash';
-import { ISpec } from '../interfaces/spec';
+import { ICommand, ISpec } from '../interfaces/spec';
 import { config } from '../config/config';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
-import { Hash } from '../interfaces/types';
+import { ExitCode, Hash } from '../interfaces/types';
 import { run } from '../command/command';
 import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
 
@@ -13,10 +13,15 @@ import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
  * @param context
  * @param command
  */
-export async function runCommand(tf: Terraform, context: IContext, command: string | Hash) {
+export async function runCommand(
+    tf: Terraform,
+    context: IContext,
+    command: ICommand,
+): Promise<number> {
     log.info(`Running command: ${JSON.stringify(command)}`);
     const workspace = context.spec.workspaces[context.workspace];
     if (typeof command === 'string') {
+        // strings are assumed to be terraform subcommand arguments
         // pre-apply hook
         if (command.split(' ').includes('apply')) {
             if (context.spec.hooks && context.spec.hooks['pre-apply']) {
@@ -35,25 +40,46 @@ export async function runCommand(tf: Terraform, context: IContext, command: stri
                 }
             }
         }
-        await tf.subcommand(command);
-    } else if (typeof command === 'object') {
+        return tf.subcommand(command) as Promise<ExitCode>;
+    }
+    if (typeof command === 'object') {
+        if ('condition' in command) {
+            const condition = command.condition as ICommand;
+            log.info(`Running condition: ${JSON.stringify(condition)}`);
+            const exitCode = await runCommand(tf, context, condition);
+            if (exitCode > 0) {
+                console.warn(`Condition failed with exit code ${exitCode}`);
+                return exitCode;
+            }
+            console.info('Condition passed.');
+        }
         if ('function' in command) {
             log.info(`Running function: ${command.function}`);
             const [m, f] = command.function.split('.');
-            process.chdir(workspace.workingDirectory);
+            const cwd = command.cwd || workspace.workingDirectory;
+            process.chdir(cwd);
             if (context.spec.modules) {
-                await context.spec.modules[m][f](tf, context);
+                return context.spec.modules[m][f](tf, context) as Promise<ExitCode>;
             }
             process.chdir(ORIGINAL_WORKING_DIRECTORY);
+        } else if ('command' in command) {
+            const cmd = command.command;
+            const args = command.args || [];
+            const cwd = command.cwd || workspace.workingDirectory;
+            const env = merge(process.env, config.env) as Hash;
+            return run(cmd, args, { cwd, env });
         } else {
+            // command is written in short hand
             const cmd = Object.keys(command)[0];
-            const args = command[cmd].split(' ');
-            await run(cmd, args, {
-                cwd: context.spec.workspaces[context.workspace].workingDirectory,
+            const args = command[cmd];
+            console.log(args);
+            return run(cmd, args, {
+                cwd: workspace.workingDirectory,
                 env: merge(process.env, config.env) as Hash,
             });
         }
     }
+    return 1 as ExitCode;
 }
 
 /**
@@ -61,13 +87,15 @@ export async function runCommand(tf: Terraform, context: IContext, command: stri
  * @param context
  * @param commands
  */
-export async function runCommands(
-    tf: Terraform,
-    context: IContext,
-    commands: Array<string | Hash>,
-) {
+export async function runCommands(tf: Terraform, context: IContext, commands: Array<ICommand>) {
     for (const command of commands) {
-        await runCommand(tf, context, command);
+        let exitCode = 0;
+        exitCode = await runCommand(tf, context, command).catch((error) => (exitCode = error));
+        if (exitCode > 0) {
+            log.error(`Command failed with exit code ${exitCode}`);
+            log.error(JSON.stringify(command));
+            throw new Error('Command failed.');
+        }
     }
 }
 

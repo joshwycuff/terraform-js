@@ -3,6 +3,7 @@ import { run as _run } from './run';
 import { CommandCommand, CommandCommandLike } from './command-command';
 import { CommandArguments, CommandArgumentsLike } from './command-arguments';
 import { log } from '../logging/logging';
+import { ExitCode } from '../interfaces/types';
 
 export interface CommandOptions {
     cwd?: string;
@@ -43,7 +44,7 @@ export class Command {
         return _execute(this.get(), this.options.cwd, this.options.env);
     }
 
-    async run() {
+    async run(): Promise<ExitCode> {
         log.debug(`Running: "${this}"`);
         log.debug(`cwd: ${this.options.cwd}`);
         log.silly(`env: ${JSON.stringify(this.options.env, null, 2)}`);
@@ -76,6 +77,6 @@ export async function run(
     command: CommandCommandLike,
     args?: CommandArgumentsLike,
     options?: CommandOptions,
-) {
+): Promise<ExitCode> {
     return new Command(command, args, options).run();
 }
