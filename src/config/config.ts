@@ -1,6 +1,9 @@
 import { cloneDeep, merge } from 'lodash';
 import path from 'path';
+import fs from 'fs';
 import { _IConfig, IConfig } from '../interfaces/config';
+import { DOT_GIT, TERRASCRIPT_RC, TERRASCRIPT_RC_JS } from '../constants';
+import { updateLogLevel } from '../logging/logging';
 
 export const config: _IConfig = {
     infrastructureDirectory: process.cwd(),
@@ -49,13 +52,14 @@ function getTop(): _IConfig {
  */
 function setTop() {
     Object.assign(config, getTop());
+    updateLogLevel(config.logging.level);
 }
 
 /**
  * @param config
  * @param inputConfig
  */
-export function stackConfig(inputConfig: IConfig) {
+export async function stackConfig(inputConfig: IConfig) {
     const currentConfig = cloneDeep(getTop());
     const stackedConfig = merge(currentConfig, cloneDeep(inputConfig));
     CONFIG_STACK.push(stackedConfig);
@@ -65,7 +69,7 @@ export function stackConfig(inputConfig: IConfig) {
 /**
  *
  */
-export function unstackConfig() {
+export async function unstackConfig() {
     if (CONFIG_STACK.length > 1) {
         CONFIG_STACK.pop();
         setTop();
@@ -86,14 +90,31 @@ export function updateConfig(inputConfig: IConfig) {
 /**
  *
  */
-function getRcConfig(): IConfig {
+async function getRcConfig(): Promise<IConfig> {
     try {
-        const cwd = process.cwd();
-        // eslint-disable-next-line global-require
-        return require(path.join(cwd, '.terrascriptrc'));
+        let dir = process.cwd();
+        while (dir !== '/') {
+            const filesAndFolders = await fs.readdirSync(dir);
+            if (filesAndFolders.includes(TERRASCRIPT_RC_JS)) {
+                break;
+            }
+            if (filesAndFolders.includes(DOT_GIT)) {
+                break;
+            }
+            dir = path.dirname(dir);
+        }
+        // eslint-disable-next-line global-require,import/no-dynamic-require
+        return require(path.join(dir, TERRASCRIPT_RC));
     } catch {
         return {};
     }
 }
 
-stackConfig(getRcConfig());
+/**
+ *
+ */
+export async function stackRcConfig() {
+    await stackConfig(await getRcConfig());
+}
+
+stackRcConfig();

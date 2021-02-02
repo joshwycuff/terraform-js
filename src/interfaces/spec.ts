@@ -36,6 +36,8 @@ interface IWorkspaces extends Hash<any> {
 }
 
 export interface ISpec extends Hash<any> {
+    name?: string;
+    subprojects?: Hash;
     config?: IConfig;
     groups?: IGroups;
     hooks?: IHooks;

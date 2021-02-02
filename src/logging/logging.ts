@@ -1,5 +1,4 @@
 import { createLogger, format, transports } from 'winston';
-import { config } from '../config/config';
 
 /**
  * @param info
@@ -13,7 +12,14 @@ const myFormat = format.printf(({ level, message, label, timestamp }) => {
 });
 
 export const log = createLogger({
-    level: config.logging.level,
+    level: 'warn',
     format: format.combine(format.timestamp(), myFormat),
     transports: [new transports.Console()],
 });
+
+/**
+ * @param level
+ */
+export function updateLogLevel(level: string) {
+    log.level = level;
+}

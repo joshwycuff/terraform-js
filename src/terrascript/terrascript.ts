@@ -6,7 +6,7 @@ import { cloneDeep } from 'lodash';
 import path from 'path';
 import { log } from '../logging/logging';
 import { ISpec } from '../interfaces/spec';
-import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
+import { ORIGINAL_WORKING_DIRECTORY, TERRASCRIPT_YML } from '../constants';
 import { config } from '../config/config';
 
 /**
@@ -20,7 +20,7 @@ function getWorkspaceFullName(spec: ISpec, workspace: string) {
 /**
  * @param filepath
  */
-export async function getScriptSpec(filepath: string): Promise<ISpec> {
+async function getScriptSpec(filepath: string): Promise<ISpec> {
     return yaml.load(fs.readFileSync(filepath, 'utf-8')) as ISpec;
 }
 
@@ -75,9 +75,34 @@ async function compile(spec: ISpec, subspec: any, section: string): Promise<any>
 
 /**
  * @param spec
- * @param uncompiledSpec
  */
-export async function compileScriptSpec(uncompiledSpec: ISpec): Promise<ISpec> {
+async function checkSubprojects(spec: ISpec) {
+    if (spec.subprojects) {
+        for (const subprojectName of Object.keys(spec.subprojects)) {
+            const subprojectPath = spec.subprojects[subprojectName];
+            const yml = path.join(subprojectPath, TERRASCRIPT_YML);
+            if (await fs.existsSync(yml)) {
+                log.debug(`Subproject yaml found: ${yml}`);
+            } else {
+                throw new Error(`Subproject yaml not found: ${yml}`);
+            }
+        }
+    }
+}
+
+/**
+ * @param spec
+ * @param uncompiledSpec
+ * @param filepath
+ */
+export async function compileScriptSpec(filepath: string = TERRASCRIPT_YML): Promise<ISpec> {
+    const fullFilepath = path.resolve(filepath);
+    const uncompiledSpec = await getScriptSpec(fullFilepath);
+    log.info(`Compiling terrascript spec: ${fullFilepath}`);
+    if (!('name' in uncompiledSpec)) {
+        uncompiledSpec.name = path.basename(path.dirname(fullFilepath));
+    }
+    log.info(`Terrascript spec name: ${uncompiledSpec.name}`);
     log.silly(`uncompiled script spec ${JSON.stringify(uncompiledSpec, null, 2)}`);
     const spec = cloneDeep(uncompiledSpec);
     for (const section of Object.keys(spec)) {
@@ -90,6 +115,7 @@ export async function compileScriptSpec(uncompiledSpec: ISpec): Promise<ISpec> {
         spec.workspaces[workspace].fullName = getWorkspaceFullName(spec, workspace);
         spec.workspaces[workspace].useTmpDir = config.tmpDirectory !== '';
     }
+    await checkSubprojects(spec);
     log.silly(`compiled script spec ${JSON.stringify(spec, null, 2)}`);
     return spec;
 }

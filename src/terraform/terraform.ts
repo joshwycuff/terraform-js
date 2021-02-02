@@ -57,6 +57,7 @@ export class Terraform {
         'taint',
         'untaint',
         'validate',
+        'version',
         'workspace',
     ];
 

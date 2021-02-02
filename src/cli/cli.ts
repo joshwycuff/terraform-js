@@ -20,9 +20,6 @@ async function main() {
     try {
         // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
         const [, , group, cmd, ...args] = process.argv;
-        log.debug(`group: ${group}`);
-        log.debug(`cmd: ${cmd}`);
-        log.debug(`args: ${args}`);
         if (group === undefined) {
             await help();
             process.exit(1);

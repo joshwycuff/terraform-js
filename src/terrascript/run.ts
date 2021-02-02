@@ -3,32 +3,43 @@ import { merge } from 'lodash';
 import fs from 'fs';
 import { copySync } from 'fs-extra';
 import path from 'path';
-import { add } from 'winston';
 import glob from 'glob';
-import { NULL, ORIGINAL_WORKING_DIRECTORY } from '../constants'; // just making sure constants get evaluated first
-import { compileScriptSpec, getScriptSpec } from './terrascript';
+import {
+    DOT_GIT,
+    NODE_MODULES,
+    ORIGINAL_WORKING_DIRECTORY,
+    SUBPROJECT_HIERARCHICAL_DELIMITER,
+} from '../constants'; // just making sure constants get evaluated first
+import { compileScriptSpec } from './terrascript';
 import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
 import { runScript } from './runner';
 import { run as runCommand } from '../command/command';
 import { ISpec } from '../interfaces/spec';
 import { getCommitId } from '../git/git';
-import { Hash } from '../interfaces/types';
+import { ExitCode, Hash } from '../interfaces/types';
 import { Terraform } from '../terraform/terraform';
+import { log } from '../logging/logging';
 
 /**
  * @param spec
  * @param groupOrWorkspaceName
+ * @param groupPath
  */
-function getWorkspaces(spec: ISpec, groupOrWorkspaceName: string) {
+function getWorkspaces(spec: ISpec, groupPath: string) {
+    const groupName = groupPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER).slice(-1)[0];
     const { groups } = spec;
     const workspaces = Object.keys(spec.workspaces);
-    if (groupOrWorkspaceName === 'all') {
+    if (groupName === 'all') {
         return workspaces;
     }
-    if (groups && groupOrWorkspaceName in groups) {
-        return groups[groupOrWorkspaceName];
+    if (groups && groupName in groups) {
+        return groups[groupName];
     }
-    return [groupOrWorkspaceName];
+    if (workspaces.includes(groupName)) {
+        return [groupName];
+    }
+    log.warn(`Group or workspace not found: ${groupName}`);
+    return [];
 }
 
 /**
@@ -67,9 +78,20 @@ export async function initWorkspace(spec: ISpec, workspaceName: string) {
  */
 async function addNodeModulesBinsToPath() {
     let processEnvPath = process?.env?.PATH?.split(':') || [];
+    let dir = process.cwd();
+    while (dir !== '/') {
+        const filesAndFolders = await fs.readdirSync(dir);
+        if (filesAndFolders.includes(NODE_MODULES)) {
+            break;
+        }
+        if (filesAndFolders.includes(DOT_GIT)) {
+            break;
+        }
+        dir = path.dirname(dir);
+    }
     return new Promise((resolve, reject) => {
         try {
-            glob('**/node_modules/.bin', {}, (error, files) => {
+            glob(path.join(dir, NODE_MODULES, '.bin'), {}, (error, files) => {
                 if (error) {
                     reject(error);
                 }
@@ -93,8 +115,92 @@ function isScript(spec: ISpec, scriptOrCommand: string): boolean {
 }
 
 /**
+ * @param spec
  * @param groupOrWorkspace
- * @param inputScriptOrCommand
+ */
+function getSubprojects(spec: ISpec, groupOrWorkspace: string): string[] {
+    const parts = groupOrWorkspace.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
+    if (parts[0] === '') {
+        return [];
+    }
+    if (spec.subprojects) {
+        if (parts.length === 1) {
+            // all subprojects
+            return Object.keys(spec.subprojects);
+        }
+        const regex = new RegExp(parts[0]);
+        const subprojects = Object.keys(spec.subprojects);
+        const matchingSubprojects = subprojects.filter((name) => regex.test(name));
+        if (matchingSubprojects.length > 0) {
+            return matchingSubprojects;
+        }
+    }
+    if (parts.length > 1) {
+        throw new Error(`No matching subprojects found in spec: ${parts[0]}`);
+    }
+    // no subprojects
+    return [];
+}
+
+/**
+ * @param spec
+ * @param groupOrWorkspace
+ * @param scriptOrCommand
+ * @param commandArgs
+ */
+async function runSubprojects(
+    spec: ISpec,
+    groupOrWorkspace: string,
+    scriptOrCommand: string,
+    commandArgs?: Array<string>,
+) {
+    if (!spec.subprojects) {
+        throw new Error('No subprojects in spec.');
+    }
+    const delim = SUBPROJECT_HIERARCHICAL_DELIMITER;
+    const subprojects = getSubprojects(spec, groupOrWorkspace);
+    log.debug(`Running subprojects: ${JSON.stringify(subprojects)}`);
+    for (const subproject of subprojects) {
+        const parts = groupOrWorkspace.split(delim);
+        const newGroupOrWorkspace = parts.length > 1 ? parts.slice(1).join(delim) : parts[0];
+        const command = 'terrascript';
+        const args = [newGroupOrWorkspace, scriptOrCommand].concat(commandArgs || []);
+        await runCommand(command, args, {
+            cwd: spec.subprojects && spec.subprojects[subproject],
+            env: process.env as Hash,
+        });
+    }
+}
+
+/**
+ * @param spec
+ */
+function hasSubprojects(spec: ISpec): boolean {
+    return !!spec.subprojects && Object.keys(spec.subprojects).length > 0;
+}
+
+/**
+ * @param spec
+ * @param groupOrWorkspace
+ */
+function isRunSubprojects(spec: ISpec, groupOrWorkspace: string): boolean {
+    const parts = groupOrWorkspace.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
+    if (parts.length > 1) {
+        return parts[0] !== '';
+    }
+    return hasSubprojects(spec);
+}
+
+/**
+ * @param groupOrWorkspace
+ */
+function isRunSubprojectsOnly(groupOrWorkspace: string): boolean {
+    const parts = groupOrWorkspace.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
+    return parts.length > 1 && parts[0] !== '';
+}
+
+/**
+ * @param groupOrWorkspace
  * @param scriptOrCommand
  * @param commandArgs
  */
@@ -104,8 +210,14 @@ export async function run(
     commandArgs?: Array<string>,
 ) {
     await addNodeModulesBinsToPath();
-    const spec = await compileScriptSpec(await getScriptSpec('./terrascript.yml'));
+    const spec = await compileScriptSpec();
     stackConfig(spec.config || {});
+    if (isRunSubprojects(spec, groupOrWorkspace)) {
+        await runSubprojects(spec, groupOrWorkspace, scriptOrCommand, commandArgs);
+    }
+    if (isRunSubprojectsOnly(groupOrWorkspace)) {
+        return;
+    }
     if (config.commitId) {
         updateConfig({ env: { [config.commitId]: await getCommitId() } });
     }
