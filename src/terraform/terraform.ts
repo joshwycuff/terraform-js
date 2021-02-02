@@ -34,6 +34,32 @@ export class Terraform {
 
     backendConfigFile?: string;
 
+    private static subcommands = [
+        'apply',
+        'console',
+        'destroy',
+        'env',
+        'fmt',
+        'force-unlock',
+        'get',
+        'graph',
+        'import',
+        'init',
+        'login',
+        'logout',
+        'output',
+        'plan',
+        'providers',
+        'push',
+        'refresh',
+        'show',
+        'state',
+        'taint',
+        'untaint',
+        'validate',
+        'workspace',
+    ];
+
     constructor(options?: CommandOptions, command: TerraformCommandLike = config.command) {
         this.command = new TerraformCommand(command);
         this.options = merge({ env: process.env }, { env: config.env }, options);
@@ -337,6 +363,10 @@ export class Terraform {
     // endregion
 
     // region Additional functionality
+    static isSubcommand(cmd: string): boolean {
+        return this.subcommands.includes(cmd);
+    }
+
     async graphSvg(filename = 'graph.svg') {
         const cwd = this.options.cwd || '';
         const dot = path.join(cwd, filename.replace('.svg', '.dot'));

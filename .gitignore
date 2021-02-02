@@ -123,8 +123,8 @@ dist
 
 .npmrc
 
-tmp/
-
-.terrascriptrc.js
-terrascript.yml
-infrastructure
+testing/testInfrastructure/.terrascriptrc.js
+testing/testInfrastructure/terrascript.yml
+testing/testInfrastructure/*.txt
+testing/testInfrastructure/.terraform/
+testing/testInfrastructure/terraform.tfstate.d/

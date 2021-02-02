@@ -85,7 +85,16 @@ async function addNodeModulesBinsToPath() {
 }
 
 /**
+ * @param spec
+ * @param scriptOrCommand
+ */
+function isScript(spec: ISpec, scriptOrCommand: string): boolean {
+    return !!spec.scripts && scriptOrCommand in spec.scripts;
+}
+
+/**
  * @param groupOrWorkspace
+ * @param inputScriptOrCommand
  * @param scriptOrCommand
  * @param commandArgs
  */
@@ -109,27 +118,16 @@ export async function run(
         }
         if (scriptOrCommand === '--config') {
             console.log(config);
-        } else if (Array.isArray(commandArgs) && commandArgs.length > 0) {
-            const command = scriptOrCommand === '-' ? 'terraform' : scriptOrCommand;
-            if (scriptOrCommand === '-') {
-                const tf = new Terraform({
-                    cwd: spec.workspaces[workspace].workingDirectory,
-                    env: merge(process.env, config.env) as Hash,
-                });
-                await tf.subcommand(commandArgs[0], commandArgs.slice(1));
-            } else {
-                await runCommand(command, commandArgs, {
-                    cwd: spec.workspaces[workspace].workingDirectory,
-                    env: merge(process.env, config.env) as Hash,
-                });
-            }
-        } else if (!spec.scripts || !Object.keys(spec.scripts).includes(scriptOrCommand)) {
-            await runCommand(scriptOrCommand, [], {
+        } else if (isScript(spec, scriptOrCommand)) {
+            await runScript(spec, scriptOrCommand, workspace);
+        } else if (Terraform.isSubcommand(scriptOrCommand)) {
+            const tf = new Terraform({ cwd: spec.workspaces[workspace].workingDirectory });
+            await tf.subcommand(scriptOrCommand, commandArgs);
+        } else {
+            await runCommand(scriptOrCommand, commandArgs || [], {
                 cwd: spec.workspaces[workspace].workingDirectory,
                 env: merge(process.env, config.env) as Hash,
             });
-        } else {
-            await runScript(spec, scriptOrCommand, workspace);
         }
         unstackConfig();
     }
