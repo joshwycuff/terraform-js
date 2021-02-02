@@ -42,4 +42,5 @@ export interface ISpec extends Hash<any> {
     modules?: IModules;
     scripts: IScripts;
     workspaces: IWorkspaces;
+    definitions?: Hash<any>;
 }

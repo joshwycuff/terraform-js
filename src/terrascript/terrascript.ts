@@ -30,7 +30,10 @@ export async function getScriptSpec(filepath: string): Promise<ISpec> {
  */
 async function compileString(spec: ISpec, str: string) {
     if (str.slice(0, 1) === '$') {
-        return spec[str];
+        if (!!spec.definitions && str in spec.definitions) {
+            return spec.definitions[str];
+        }
+        throw new Error(`${str} not found in definitions.`);
     }
     return str;
 }
