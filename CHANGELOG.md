@@ -1,3 +1,11 @@
+# [0.1.0](https://github.com/joshwycuff/terrascript/compare/v0.0.1...v0.1.0) (2021-02-02)
+
+
+### Features
+
+* add definitions to spec ([cdddffb](https://github.com/joshwycuff/terrascript/commit/cdddffba3e124dec69c74ef2509004b33b52a50a))
+* add support for subprojects ([2eee22e](https://github.com/joshwycuff/terrascript/commit/2eee22e41fd3e316863d35888a1c040575228f41))
+
 ## [0.0.1](https://github.com/joshwycuff/terrascript/compare/v0.0.0...v0.0.1) (2021-02-02)
 
 
