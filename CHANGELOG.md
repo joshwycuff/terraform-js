@@ -1,3 +1,10 @@
+## [0.0.1](https://github.com/joshwycuff/terrascript/compare/v0.0.0...v0.0.1) (2021-02-02)
+
+
+### Bug Fixes
+
+* make easier to run terraform subcommands from cli ([994a1e7](https://github.com/joshwycuff/terrascript/commit/994a1e7e2d8b8a95922f825be72a94559c9bc767))
+
 ## [1.0.2](https://github.com/joshwycuff/terrascript/compare/v1.0.1...v1.0.2) (2021-02-01)
 
 
