@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/joshwycuff/terrascript/compare/v0.1.0...v0.2.0) (2021-02-03)
+
+
+### Features
+
+* add onSubprojectNotFound and onWorkspaceNotFound configs ([c74166f](https://github.com/joshwycuff/terrascript/commit/c74166f68287e35598bc6cd3a790c247f7c9688f))
+
 # [0.1.0](https://github.com/joshwycuff/terrascript/compare/v0.0.1...v0.1.0) (2021-02-02)
 
 
