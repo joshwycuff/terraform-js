@@ -29,6 +29,7 @@ export async function run(
             if (code === 0) {
                 resolve(code);
             } else {
+                log.warn(`'${command} ${args.join(' ')}' returned non-zero exit code: ${code}`);
                 reject(code);
             }
         });
