@@ -38,7 +38,6 @@ export class Terraform {
         'apply',
         'console',
         'destroy',
-        'env',
         'fmt',
         'force-unlock',
         'get',
