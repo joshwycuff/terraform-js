@@ -36,6 +36,10 @@ export const config: _IConfig = {
         level: 'warn',
     },
     commitId: '',
+    onSubprojectNotFound: 'warn',
+    onWorkspaceNotFound: 'warn',
+    workspacePrefix: '',
+    workspaceSuffix: '',
 };
 
 const CONFIG_STACK = [cloneDeep(config)];

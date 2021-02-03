@@ -31,18 +31,33 @@ type IModules = Hash<any>;
 
 type IScripts = Hash<Array<ICommand>>;
 
-interface IWorkspaces extends Hash<any> {
-    config: IConfig;
+interface IWorkspace extends Hash<any> {
+    config?: IConfig;
 }
 
+type IWorkspaces = Hash<IWorkspace>;
+
 export interface ISpec extends Hash<any> {
+    name: string;
+    subprojects: Hash;
+    config: IConfig;
+    groups: IGroups;
+    hooks: IHooks;
+    modules: IModules;
+    scripts: IScripts;
+    workspaces: IWorkspaces;
+    definitions: Hash<any>;
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _ISpec extends Hash<any> {
     name?: string;
     subprojects?: Hash;
     config?: IConfig;
     groups?: IGroups;
     hooks?: IHooks;
     modules?: IModules;
-    scripts: IScripts;
-    workspaces: IWorkspaces;
+    scripts?: IScripts;
+    workspaces?: IWorkspaces;
     definitions?: Hash<any>;
 }

@@ -5,9 +5,11 @@ import fs from 'fs';
 import { cloneDeep } from 'lodash';
 import path from 'path';
 import { log } from '../logging/logging';
-import { ISpec } from '../interfaces/spec';
+import { _ISpec, ISpec } from '../interfaces/spec';
 import { ORIGINAL_WORKING_DIRECTORY, TERRASCRIPT_YML } from '../constants';
 import { config } from '../config/config';
+import { Hash } from '../interfaces/types';
+import { IConfig } from '../interfaces/config';
 
 /**
  * @param spec
@@ -20,7 +22,7 @@ function getWorkspaceFullName(spec: ISpec, workspace: string) {
 /**
  * @param filepath
  */
-async function getScriptSpec(filepath: string): Promise<ISpec> {
+async function getScriptSpec(filepath: string): Promise<_ISpec> {
     return yaml.load(fs.readFileSync(filepath, 'utf-8')) as ISpec;
 }
 
@@ -99,12 +101,36 @@ export async function compileScriptSpec(filepath: string = TERRASCRIPT_YML): Pro
     const fullFilepath = path.resolve(filepath);
     const uncompiledSpec = await getScriptSpec(fullFilepath);
     log.info(`Compiling terrascript spec: ${fullFilepath}`);
-    if (!('name' in uncompiledSpec)) {
+    if (uncompiledSpec.name === undefined) {
         uncompiledSpec.name = path.basename(path.dirname(fullFilepath));
+    }
+    if (uncompiledSpec.subprojects === undefined) {
+        uncompiledSpec.subprojects = {};
+    }
+    if (uncompiledSpec.config === undefined) {
+        uncompiledSpec.config = {};
+    }
+    if (uncompiledSpec.groups === undefined) {
+        uncompiledSpec.groups = {};
+    }
+    if (uncompiledSpec.hooks === undefined) {
+        uncompiledSpec.hooks = {};
+    }
+    if (uncompiledSpec.modules === undefined) {
+        uncompiledSpec.modules = {};
+    }
+    if (uncompiledSpec.scripts === undefined) {
+        uncompiledSpec.scripts = {};
+    }
+    if (uncompiledSpec.workspaces === undefined) {
+        uncompiledSpec.workspaces = {};
+    }
+    if (uncompiledSpec.definitions === undefined) {
+        uncompiledSpec.definitions = [];
     }
     log.info(`Terrascript spec name: ${uncompiledSpec.name}`);
     log.silly(`uncompiled script spec ${JSON.stringify(uncompiledSpec, null, 2)}`);
-    const spec = cloneDeep(uncompiledSpec);
+    const spec = cloneDeep(uncompiledSpec) as ISpec;
     for (const section of Object.keys(spec)) {
         spec[section] = await compile(spec, spec[section], section);
     }

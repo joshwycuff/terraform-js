@@ -38,7 +38,11 @@ function getWorkspaces(spec: ISpec, groupPath: string) {
     if (workspaces.includes(groupName)) {
         return [groupName];
     }
-    log.warn(`Group or workspace not found: ${groupName}`);
+    const msg = `Group or workspace not found: ${groupName}`;
+    if (config.onWorkspaceNotFound === 'error') {
+        throw new Error(msg);
+    }
+    log.log(config.onWorkspaceNotFound, msg);
     return [];
 }
 
@@ -136,7 +140,11 @@ function getSubprojects(spec: ISpec, groupOrWorkspace: string): string[] {
         }
     }
     if (parts.length > 1) {
-        throw new Error(`No matching subprojects found in spec: ${parts[0]}`);
+        const msg = `No matching subprojects found in spec: ${parts[0]}`;
+        if (config.onSubprojectNotFound === 'error') {
+            throw new Error(msg);
+        }
+        log.log(config.onSubprojectNotFound, msg);
     }
     // no subprojects
     return [];

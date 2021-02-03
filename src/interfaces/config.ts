@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
-import { Hash } from './types';
+import { Hash, LogLevel } from './types';
 
 interface IEnv extends Hash<string | undefined> {
     TF_LOG?: string;
@@ -32,9 +32,13 @@ export interface _IConfig extends Hash<any> {
     backendConfig: Hash;
     backendConfigFile: string;
     logging: {
-        level: 'silly' | 'debug' | 'info' | 'warn' | 'error';
+        level: LogLevel;
     };
     commitId: string;
+    onSubprojectNotFound: LogLevel;
+    onWorkspaceNotFound: LogLevel;
+    workspacePrefix: string;
+    workspaceSuffix: string;
 }
 
 export interface IConfig extends Hash<any> {
@@ -53,7 +57,11 @@ export interface IConfig extends Hash<any> {
     backendConfig?: Hash;
     backendConfigFile?: string;
     logging?: {
-        level?: 'silly' | 'debug' | 'info' | 'warn' | 'error';
+        level?: LogLevel;
     };
     commitId?: string;
+    onSubprojectNotFound?: LogLevel;
+    onWorkspaceNotFound?: LogLevel;
+    workspacePrefix?: string;
+    workspaceSuffix?: string;
 }
