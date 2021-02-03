@@ -1,3 +1,11 @@
+## [0.2.1](https://github.com/joshwycuff/terrascript/compare/v0.2.0...v0.2.1) (2021-02-03)
+
+
+### Bug Fixes
+
+* move setup and teardown hooks ([e8f0837](https://github.com/joshwycuff/terrascript/commit/e8f0837fed6950d90d43239be32a275e6a6258f4))
+* remove env from terraform subcommands ([9decdbf](https://github.com/joshwycuff/terrascript/commit/9decdbf5d02874299732fc6ca024e1cbdd592017))
+
 # [0.2.0](https://github.com/joshwycuff/terrascript/compare/v0.1.0...v0.2.0) (2021-02-03)
 
 
