@@ -4,8 +4,8 @@ import { ISpec } from './spec';
 import { Terraform } from '../terraform/terraform';
 
 export interface IContext extends Hash<any> {
-    tf: Terraform;
+    tf?: Terraform;
     config: IConfig;
     spec: ISpec;
-    workspace: string;
+    workspace?: string;
 }

@@ -6,6 +6,7 @@
   "scripts": {
     "dev:terrascript": "yarn build && cd testing/testInfrastructure && node ../../dist/cli/cli.js",
     "build": "tsc",
+    "build:watch": "tsc --watch",
     "commit": "git cz",
     "check:all": "yarn check:format && yarn check:lint && yarn check:test",
     "check:format": "prettier --check src/**/*.ts",
@@ -105,6 +106,7 @@
     "glob": "^7.1.6",
     "js-yaml": "^4.0.0",
     "lodash": "^4.17.20",
+    "maybe-optional": "^0.4.0",
     "winston": "^3.3.3"
   },
   "bin": {

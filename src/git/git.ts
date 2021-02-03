@@ -4,5 +4,5 @@ import { execute } from '../command/command';
  *
  */
 export async function getCommitId() {
-    return execute('git', 'rev-parse HEAD');
+    return (await execute('git', 'rev-parse HEAD')).trim();
 }

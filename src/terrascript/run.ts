@@ -12,13 +12,14 @@ import {
 } from '../constants'; // just making sure constants get evaluated first
 import { compileScriptSpec } from './terrascript';
 import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
-import { runScript } from './runner';
+import { runCommands, runScript } from './runner';
 import { run as runCommand } from '../command/command';
 import { ISpec } from '../interfaces/spec';
 import { getCommitId } from '../git/git';
 import { ExitCode, Hash } from '../interfaces/types';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
+import { IContext } from '../interfaces/context';
 
 /**
  * @param spec
@@ -226,8 +227,17 @@ export async function run(
     if (isRunSubprojectsOnly(groupOrWorkspace)) {
         return;
     }
-    if (config.commitId) {
-        updateConfig({ env: { [config.commitId]: await getCommitId() } });
+    if (config.gitCommitIdEnvVar) {
+        updateConfig({ env: { [config.gitCommitIdEnvVar]: await getCommitId() } });
+    }
+    const context: IContext = {
+        config,
+        spec,
+    };
+    // setup hook
+    if (context.spec.hooks && context.spec.hooks.setup) {
+        log.info('Running setup hook');
+        await runCommands(undefined, context, context.spec.hooks.setup);
     }
     for (const workspace of getWorkspaces(spec, groupOrWorkspace)) {
         stackConfig(spec.workspaces[workspace]?.config || {});
@@ -241,7 +251,10 @@ export async function run(
         } else if (isScript(spec, scriptOrCommand)) {
             await runScript(spec, scriptOrCommand, workspace);
         } else if (Terraform.isSubcommand(scriptOrCommand)) {
-            const tf = new Terraform({ cwd: spec.workspaces[workspace].workingDirectory });
+            const tf = new Terraform({
+                cwd: spec.workspaces[workspace].workingDirectory,
+                env: merge(process.env, config.env) as Hash,
+            });
             await tf.subcommand(scriptOrCommand, commandArgs);
         } else {
             await runCommand(scriptOrCommand, commandArgs || [], {
@@ -250,5 +263,10 @@ export async function run(
             });
         }
         unstackConfig();
+    }
+    // teardown hook
+    if (context.spec.hooks && context.spec.hooks.teardown) {
+        log.info('Running teardown hook');
+        await runCommands(undefined, context, context.spec.hooks.teardown);
     }
 }

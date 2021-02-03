@@ -5322,6 +5322,11 @@ map-visit@^1.0.0:
   dependencies:
     object-visit "^1.0.0"
 
+maybe-optional@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.npmjs.org/maybe-optional/-/maybe-optional-0.4.0.tgz#402ab885100e14ee3ab736226628abce517edc7b"
+  integrity sha512-MtA2SaVq2GjnzmwLnEJnayd29JIcEj4+XeaBbGEF3twhEy8ZSXaRbZMU3bawI6chjQPqfv3YCA4pEB53LKAkGw==
+
 meant@^1.0.2:
   version "1.0.3"
   resolved "https://registry.npmjs.org/meant/-/meant-1.0.3.tgz#67769af9de1d158773e928ae82c456114903554c"

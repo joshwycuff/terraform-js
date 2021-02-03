@@ -427,6 +427,12 @@ export class Terraform {
             if (this.autoApprove || this.autoApproveApply) {
                 tfArgs.addFlag('-auto-approve');
             }
+            for (const key of Object.keys(this.tfVars)) {
+                tfArgs.addOption(`-var=${key}=${this.tfVars[key]}`);
+            }
+            for (const key of this.tfVarsFiles) {
+                tfArgs.addOption(`-var-file=${key}`);
+            }
         }
         return get ? this.execute(tfArgs) : this.run(tfArgs);
     }

@@ -1,4 +1,5 @@
 import { merge } from 'lodash';
+import { Maybe } from 'maybe-optional';
 import { ICommand, ISpec } from '../interfaces/spec';
 import { config } from '../config/config';
 import { Terraform } from '../terraform/terraform';
@@ -14,14 +15,14 @@ import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
  * @param command
  */
 export async function runCommand(
-    tf: Terraform,
+    tf: Maybe<Terraform>,
     context: IContext,
     command: ICommand,
-): Promise<number> {
+): Promise<ExitCode> {
     log.info(`Running command: ${JSON.stringify(command)}`);
     let cmd: Hash = {};
     let isTerraformSubcommand = false;
-    const workspace = context.spec.workspaces[context.workspace];
+    const workspace = context.spec.workspaces[context.workspace || ''];
     if (typeof command === 'string') {
         let cmdStr = command;
         if (cmdStr.split(' ')[0] === 'terraform') {
@@ -57,7 +58,7 @@ export async function runCommand(
     if ('condition' in cmd) {
         const condition = cmd.condition as ICommand;
         log.info(`Running condition: ${JSON.stringify(condition)}`);
-        const exitCode = await runCommand(tf, context, condition);
+        const exitCode: ExitCode = (await runCommand(tf, context, condition)) || 0;
         if (exitCode > 0) {
             console.warn(`Condition failed with exit code ${exitCode}`);
             return exitCode;
@@ -66,23 +67,24 @@ export async function runCommand(
     }
     if ('function' in cmd) {
         log.info(`Running function: ${cmd.function}`);
-        let functionReturnValue = 1 as ExitCode;
         const [m, f] = cmd.function.split('.');
-        const cwd = cmd.cwd || workspace.workingDirectory;
+        const cwd = cmd.cwd || workspace?.workingDirectory || process.cwd();
         process.chdir(cwd);
         try {
             if (context.spec.modules) {
-                functionReturnValue = (await context.spec.modules[m][f](tf, context)) as ExitCode;
+                const func = context.spec.modules[m].module[f];
+                await func(tf, context);
             }
         } catch (error) {
             log.error('Function failed.');
             log.error(error);
+            return 1;
         }
         process.chdir(ORIGINAL_WORKING_DIRECTORY);
-        return functionReturnValue;
+        return 0;
     }
     if (isTerraformSubcommand) {
-        return tf.subcommand(cmd.command, cmd.args) as Promise<ExitCode>;
+        return (tf as Terraform).subcommand(cmd.command, cmd.args) as Promise<ExitCode>;
     }
     const cwd = cmd.cwd || workspace.workingDirectory;
     const env = merge(process.env, config.env) as Hash;
@@ -94,14 +96,14 @@ export async function runCommand(
  * @param context
  * @param commands
  */
-export async function runCommands(tf: Terraform, context: IContext, commands: Array<ICommand>) {
+export async function runCommands(
+    tf: Maybe<Terraform>,
+    context: IContext,
+    commands: Array<ICommand>,
+): Promise<ExitCode> {
     for (const command of commands) {
-        let exitCode = 0;
-        exitCode = await runCommand(tf, context, command).catch((error) => (exitCode = error));
-        if (exitCode > 0) {
-            log.error(`Command failed with exit code ${exitCode}`);
-            log.error(JSON.stringify(command));
-            return exitCode;
+        if (await runCommand(tf, context, command)) {
+            return 1;
         }
     }
     return 0;
@@ -114,7 +116,6 @@ export async function runCommands(tf: Terraform, context: IContext, commands: Ar
  * @param workspaceName
  */
 export async function runScript(spec: ISpec, scriptName: string, workspaceName: string) {
-    let exitCode = 0;
     const workspace = spec.workspaces[workspaceName];
     const tf = new Terraform({ cwd: workspace.workingDirectory });
     const context: IContext = {
@@ -123,18 +124,5 @@ export async function runScript(spec: ISpec, scriptName: string, workspaceName: 
         spec,
         workspace: workspaceName,
     };
-    // setup hook
-    if (context.spec.hooks && context.spec.hooks.setup) {
-        log.info('Running setup hook');
-        exitCode = await runCommands(tf, context, context.spec.hooks.setup);
-    }
-    if (exitCode === 0) {
-        exitCode = await runCommands(tf, context, spec.scripts[scriptName]);
-    }
-    // teardown hook
-    if (exitCode === 0 && context.spec.hooks && context.spec.hooks.teardown) {
-        log.info('Running teardown hook');
-        exitCode = await runCommands(tf, context, context.spec.hooks.teardown);
-    }
-    return exitCode;
+    return runCommands(tf, context, spec.scripts[scriptName]);
 }
