@@ -379,12 +379,15 @@ export class Terraform {
     // endregion
 
     // region Lower-level execution commands
-    async run(args: TerraformArgumentsLike) {
-        return run(this.command, args, this.options);
+    async run(args: TerraformArgumentsLike, optionsOverrides: CommandOptions = {}) {
+        return run(this.command, args, merge(this.options, optionsOverrides));
     }
 
-    async execute(args: TerraformArgumentsLike): Promise<string> {
-        return execute(this.command, args, this.options);
+    async execute(
+        args: TerraformArgumentsLike,
+        optionsOverrides: CommandOptions = {},
+    ): Promise<string> {
+        return execute(this.command, args, merge(this.options, optionsOverrides));
     }
 
     async subcommand(subcommand: string, args?: TerraformArgumentsLike, get = false) {
@@ -403,6 +406,7 @@ export class Terraform {
             } else if (this.backendConfigFile) {
                 tfArgs.addOption(`-backend-config="${this.backendConfigFile}"`);
             }
+            return this._init(tfArgs, get);
         }
         if (arg1 === 'plan') {
             for (const key of Object.keys(this.tfVars)) {
@@ -435,6 +439,15 @@ export class Terraform {
             }
         }
         return get ? this.execute(tfArgs) : this.run(tfArgs);
+    }
+
+    private async _init(tfArgs: TerraformArguments, get: boolean) {
+        const overrides: CommandOptions = {
+            env: {
+                TF_WORKSPACE: 'default',
+            },
+        };
+        return get ? this.execute(tfArgs, overrides) : this.run(tfArgs, overrides);
     }
     // endregion
 }
