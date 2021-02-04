@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/joshwycuff/terrascript/compare/v0.2.1...v0.2.2) (2021-02-04)
+
+
+### Bug Fixes
+
+* use default workspace for terraform init ([e96c21f](https://github.com/joshwycuff/terrascript/commit/e96c21f5be294490526154dd0d3dd73e4bef6c38))
+
 ## [0.2.1](https://github.com/joshwycuff/terrascript/compare/v0.2.0...v0.2.1) (2021-02-03)
 
 
