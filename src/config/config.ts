@@ -1,10 +1,10 @@
-import { cloneDeep, merge } from 'lodash';
+import { merge } from 'lodash';
 import path from 'path';
-import fs from 'fs';
 import { _IConfig, IConfig } from '../interfaces/config';
-import { DOT_GIT, TERRASCRIPT_RC, TERRASCRIPT_RC_JS } from '../constants';
-import { updateLogLevel } from '../logging/logging';
+import { TERRASCRIPT_RC, TERRASCRIPT_RC_JS } from '../constants';
+import { log, updateLogLevel } from '../logging/logging';
 import { MergeStack } from '../utils/merge-stack';
+import { searchUp } from '../utils/search-up';
 
 export const config: _IConfig = {
     infrastructureDirectory: process.cwd(),
@@ -86,23 +86,19 @@ export function updateConfig(inputConfig: IConfig) {
  *
  */
 async function getRcConfig(): Promise<IConfig> {
-    try {
-        let dir = process.cwd();
-        while (dir !== '/') {
-            const filesAndFolders = await fs.readdirSync(dir);
-            if (filesAndFolders.includes(TERRASCRIPT_RC_JS)) {
-                break;
-            }
-            if (filesAndFolders.includes(DOT_GIT)) {
-                break;
-            }
-            dir = path.dirname(dir);
+    const rcfile = await searchUp(TERRASCRIPT_RC_JS);
+    if (rcfile) {
+        const rcdir = path.dirname(rcfile);
+        try {
+            // eslint-disable-next-line global-require,import/no-dynamic-require
+            return require(path.join(rcdir, TERRASCRIPT_RC));
+        } catch (error) {
+            log.error(error);
+            log.error(error.stack);
+            process.exit(1);
         }
-        // eslint-disable-next-line global-require,import/no-dynamic-require
-        return require(path.join(dir, TERRASCRIPT_RC));
-    } catch {
-        return {};
     }
+    return {};
 }
 
 /**
