@@ -11,7 +11,7 @@ import {
     SUBPROJECT_HIERARCHICAL_DELIMITER,
 } from '../constants'; // just making sure constants get evaluated first
 import { compileScriptSpec } from './terrascript';
-import { config, stackConfig, unstackConfig, updateConfig } from '../config/config';
+import { config, pushConfig, popConfig, updateConfig } from '../config/config';
 import { runCommands, runScript } from './runner';
 import { run as runCommand } from '../command/command';
 import { ISpec } from '../interfaces/spec';
@@ -102,7 +102,7 @@ async function addNodeModulesBinsToPath() {
                 }
                 processEnvPath = files.map((f) => path.resolve(f)).concat(processEnvPath);
                 const pathWithBins = processEnvPath.join(':');
-                stackConfig({ env: { PATH: pathWithBins } });
+                pushConfig({ env: { PATH: pathWithBins } });
                 resolve(null);
             });
         } catch (error) {
@@ -220,7 +220,7 @@ export async function run(
 ) {
     await addNodeModulesBinsToPath();
     const spec = await compileScriptSpec();
-    stackConfig(spec.config || {});
+    pushConfig(spec.config || {});
     if (isRunSubprojects(spec, groupOrWorkspace)) {
         await runSubprojects(spec, groupOrWorkspace, scriptOrCommand, commandArgs);
     }
@@ -240,7 +240,7 @@ export async function run(
         await runCommands(undefined, context, context.spec.hooks.setup);
     }
     for (const workspace of getWorkspaces(spec, groupOrWorkspace)) {
-        stackConfig(spec.workspaces[workspace]?.config || {});
+        pushConfig(spec.workspaces[workspace]?.config || {});
         updateConfig({ env: { TF_WORKSPACE: spec.workspaces[workspace].fullName } });
         spec.workspaces[workspace].workingDirectory = getWorkspaceDirectory(spec, workspace);
         if (spec.workspaces[workspace].useTmpDir) {
@@ -262,7 +262,7 @@ export async function run(
                 env: merge(process.env, config.env) as Hash,
             });
         }
-        unstackConfig();
+        popConfig();
     }
     // teardown hook
     if (context.spec.hooks && context.spec.hooks.teardown) {

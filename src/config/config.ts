@@ -4,6 +4,7 @@ import fs from 'fs';
 import { _IConfig, IConfig } from '../interfaces/config';
 import { DOT_GIT, TERRASCRIPT_RC, TERRASCRIPT_RC_JS } from '../constants';
 import { updateLogLevel } from '../logging/logging';
+import { MergeStack } from '../utils/merge-stack';
 
 export const config: _IConfig = {
     infrastructureDirectory: process.cwd(),
@@ -42,20 +43,13 @@ export const config: _IConfig = {
     workspaceSuffix: '',
 };
 
-const CONFIG_STACK = [cloneDeep(config)];
-
-/**
- *
- */
-function getTop(): _IConfig {
-    return CONFIG_STACK.slice(-1)[0];
-}
+const CONFIG_STACK = new MergeStack<IConfig>(config);
 
 /**
  *
  */
 function setTop() {
-    Object.assign(config, getTop());
+    Object.assign(config, CONFIG_STACK.peek());
     updateLogLevel(config.logging.level);
 }
 
@@ -63,17 +57,15 @@ function setTop() {
  * @param config
  * @param inputConfig
  */
-export async function stackConfig(inputConfig: IConfig) {
-    const currentConfig = cloneDeep(getTop());
-    const stackedConfig = merge(currentConfig, cloneDeep(inputConfig));
-    CONFIG_STACK.push(stackedConfig);
+export async function pushConfig(inputConfig: IConfig) {
+    CONFIG_STACK.push(inputConfig);
     setTop();
 }
 
 /**
  *
  */
-export async function unstackConfig() {
+export async function popConfig() {
     if (CONFIG_STACK.length > 1) {
         CONFIG_STACK.pop();
         setTop();
@@ -85,9 +77,8 @@ export async function unstackConfig() {
  * @param inputConfig
  */
 export function updateConfig(inputConfig: IConfig) {
-    const currentConfig = cloneDeep(getTop());
-    const updatedConfig = merge(currentConfig, cloneDeep(inputConfig));
-    CONFIG_STACK[CONFIG_STACK.length - 1] = updatedConfig;
+    const conf = CONFIG_STACK.peek();
+    merge(conf, inputConfig);
     setTop();
 }
 
@@ -117,8 +108,8 @@ async function getRcConfig(): Promise<IConfig> {
 /**
  *
  */
-export async function stackRcConfig() {
-    await stackConfig(await getRcConfig());
+export async function pushRcConfig() {
+    await pushConfig(await getRcConfig());
 }
 
-stackRcConfig();
+pushRcConfig();

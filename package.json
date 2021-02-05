@@ -4,7 +4,7 @@
   "main": "./dist/index.js",
   "license": "MIT",
   "scripts": {
-    "dev:terrascript": "yarn build && cd testing/testInfrastructure && node ../../dist/cli/cli.js",
+    "dev:terrascript": "cd testing/testInfrastructure && node ../../dist/cli/cli.js",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "commit": "git cz",
