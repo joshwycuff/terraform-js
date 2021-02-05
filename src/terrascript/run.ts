@@ -3,23 +3,27 @@ import { merge } from 'lodash';
 import fs from 'fs';
 import { copySync } from 'fs-extra';
 import path from 'path';
-import glob from 'glob';
+import { isMatch } from 'micromatch';
 import {
-    DOT_GIT,
     NODE_MODULES,
     ORIGINAL_WORKING_DIRECTORY,
     SUBPROJECT_HIERARCHICAL_DELIMITER,
 } from '../constants'; // just making sure constants get evaluated first
-import { compileScriptSpec } from './terrascript';
-import { config, pushConfig, popConfig, updateConfig } from '../config/config';
+import { config, updateConfig } from '../config/config';
 import { runCommands, runScript } from './runner';
 import { run as runCommand } from '../command/command';
 import { ISpec } from '../interfaces/spec';
 import { getCommitId } from '../git/git';
-import { ExitCode, Hash } from '../interfaces/types';
+import { Hash } from '../interfaces/types';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
+import { searchUp } from '../utils/search-up';
+import { withConfig } from '../utils/with-config';
+import { SPEC } from '../spec/specs';
+import { curryWith, withContexts } from '../utils/withs';
+import { inDir } from '../utils/in-dir';
+import { withSpec } from '../utils/with-spec';
 
 /**
  * @param spec
@@ -81,34 +85,16 @@ export async function initWorkspace(spec: ISpec, workspaceName: string) {
 /**
  *
  */
-async function addNodeModulesBinsToPath() {
-    let processEnvPath = process?.env?.PATH?.split(':') || [];
-    let dir = process.cwd();
-    while (dir !== '/') {
-        const filesAndFolders = await fs.readdirSync(dir);
-        if (filesAndFolders.includes(NODE_MODULES)) {
-            break;
-        }
-        if (filesAndFolders.includes(DOT_GIT)) {
-            break;
-        }
-        dir = path.dirname(dir);
+async function getConfigWithNodeModulesBinInPath() {
+    const processEnvPath = process?.env?.PATH?.split(':') || [];
+    const nodeModulesPath = await searchUp(NODE_MODULES);
+    if (nodeModulesPath) {
+        const nodeModulesBinPath = path.join(nodeModulesPath, '.bin');
+        const pathWithBins = [nodeModulesBinPath].concat(processEnvPath).join(':');
+        const nodeConfig = { env: { PATH: pathWithBins } };
+        return nodeConfig;
     }
-    return new Promise((resolve, reject) => {
-        try {
-            glob(path.join(dir, NODE_MODULES, '.bin'), {}, (error, files) => {
-                if (error) {
-                    reject(error);
-                }
-                processEnvPath = files.map((f) => path.resolve(f)).concat(processEnvPath);
-                const pathWithBins = processEnvPath.join(':');
-                pushConfig({ env: { PATH: pathWithBins } });
-                resolve(null);
-            });
-        } catch (error) {
-            reject(error);
-        }
-    });
+    return {};
 }
 
 /**
@@ -119,154 +105,133 @@ function isScript(spec: ISpec, scriptOrCommand: string): boolean {
     return !!spec.scripts && scriptOrCommand in spec.scripts;
 }
 
-/**
- * @param spec
- * @param groupOrWorkspace
- */
-function getSubprojects(spec: ISpec, groupOrWorkspace: string): string[] {
-    const parts = groupOrWorkspace.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
-    if (parts[0] === '') {
-        return [];
-    }
-    if (spec.subprojects) {
-        if (parts.length === 1) {
-            // all subprojects
-            return Object.keys(spec.subprojects);
-        }
-        const regex = new RegExp(parts[0]);
-        const subprojects = Object.keys(spec.subprojects);
-        const matchingSubprojects = subprojects.filter((name) => regex.test(name));
-        if (matchingSubprojects.length > 0) {
-            return matchingSubprojects;
-        }
-    }
-    if (parts.length > 1) {
-        const msg = `No matching subprojects found in spec: ${parts[0]}`;
-        if (config.onSubprojectNotFound === 'error') {
-            throw new Error(msg);
-        }
-        log.log(config.onSubprojectNotFound, msg);
-    }
-    // no subprojects
-    return [];
-}
-
-/**
- * @param spec
- * @param groupOrWorkspace
- * @param scriptOrCommand
- * @param commandArgs
- */
-async function runSubprojects(
-    spec: ISpec,
-    groupOrWorkspace: string,
-    scriptOrCommand: string,
-    commandArgs?: Array<string>,
-) {
-    if (!spec.subprojects) {
-        throw new Error('No subprojects in spec.');
-    }
-    const delim = SUBPROJECT_HIERARCHICAL_DELIMITER;
-    const subprojects = getSubprojects(spec, groupOrWorkspace);
-    log.debug(`Running subprojects: ${JSON.stringify(subprojects)}`);
-    for (const subproject of subprojects) {
-        const parts = groupOrWorkspace.split(delim);
-        const newGroupOrWorkspace = parts.length > 1 ? parts.slice(1).join(delim) : parts[0];
-        const command = 'terrascript';
-        const args = [newGroupOrWorkspace, scriptOrCommand].concat(commandArgs || []);
-        await runCommand(command, args, {
-            cwd: spec.subprojects && spec.subprojects[subproject],
-            env: process.env as Hash,
+export class Run {
+    static async runSpec(
+        runSpec: ISpec,
+        specPath: string,
+        scriptOrCommand: string,
+        commandArgs?: Array<string>,
+    ) {
+        const infraDir = path.join(runSpec.dirpath, runSpec.config.infrastructureDirectory || '.');
+        const contextInfraDir = curryWith(inDir, infraDir);
+        const contextSpec = curryWith(withSpec, runSpec);
+        const contextConfig = curryWith(withConfig, () => SPEC().config);
+        const contexts = [contextInfraDir, contextSpec, contextConfig];
+        await withContexts(contexts, async () => {
+            const spec = SPEC();
+            if (Run.shouldRunSubprojects(spec.name, specPath)) {
+                await Run.runSubprojects(spec, specPath, scriptOrCommand, commandArgs);
+            }
+            if (!Run.shouldRunThisSpec(spec.name, specPath)) {
+                return;
+            }
+            if (config.gitCommitIdEnvVar) {
+                updateConfig({ env: { [config.gitCommitIdEnvVar]: await getCommitId() } });
+            }
+            // setup hook
+            if (spec.hooks && spec.hooks.setup) {
+                log.info('Running setup hook');
+                await runCommands(undefined, { config, spec }, spec.hooks.setup);
+            }
+            await Run.runWorkspaces(spec, specPath, scriptOrCommand, commandArgs);
+            // teardown hook
+            if (spec.hooks && spec.hooks.teardown) {
+                log.info('Running teardown hook');
+                await runCommands(undefined, { config, spec }, spec.hooks.teardown);
+            }
         });
     }
-}
 
-/**
- * @param spec
- */
-function hasSubprojects(spec: ISpec): boolean {
-    return !!spec.subprojects && Object.keys(spec.subprojects).length > 0;
-}
-
-/**
- * @param spec
- * @param groupOrWorkspace
- */
-function isRunSubprojects(spec: ISpec, groupOrWorkspace: string): boolean {
-    const parts = groupOrWorkspace.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
-    if (parts.length > 1) {
-        return parts[0] !== '';
-    }
-    return hasSubprojects(spec);
-}
-
-/**
- * @param groupOrWorkspace
- */
-function isRunSubprojectsOnly(groupOrWorkspace: string): boolean {
-    const parts = groupOrWorkspace.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
-    return parts.length > 1 && parts[0] !== '';
-}
-
-/**
- * @param groupOrWorkspace
- * @param scriptOrCommand
- * @param commandArgs
- */
-export async function run(
-    groupOrWorkspace: string,
-    scriptOrCommand: string,
-    commandArgs?: Array<string>,
-) {
-    await addNodeModulesBinsToPath();
-    const spec = await compileScriptSpec();
-    pushConfig(spec.config || {});
-    if (isRunSubprojects(spec, groupOrWorkspace)) {
-        await runSubprojects(spec, groupOrWorkspace, scriptOrCommand, commandArgs);
-    }
-    if (isRunSubprojectsOnly(groupOrWorkspace)) {
-        return;
-    }
-    if (config.gitCommitIdEnvVar) {
-        updateConfig({ env: { [config.gitCommitIdEnvVar]: await getCommitId() } });
-    }
-    const context: IContext = {
-        config,
-        spec,
-    };
-    // setup hook
-    if (context.spec.hooks && context.spec.hooks.setup) {
-        log.info('Running setup hook');
-        await runCommands(undefined, context, context.spec.hooks.setup);
-    }
-    for (const workspace of getWorkspaces(spec, groupOrWorkspace)) {
-        pushConfig(spec.workspaces[workspace]?.config || {});
-        updateConfig({ env: { TF_WORKSPACE: spec.workspaces[workspace].fullName } });
-        spec.workspaces[workspace].workingDirectory = getWorkspaceDirectory(spec, workspace);
-        if (spec.workspaces[workspace].useTmpDir) {
-            await initWorkspace(spec, workspace);
+    private static shouldRunThisSpec(name: string, specPath: string): boolean {
+        const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
+        const pattern = parts[0];
+        const match = isMatch(name, pattern);
+        if (parts.length > 2) {
+            return false;
         }
-        if (scriptOrCommand === '--config') {
-            console.log(config);
-        } else if (isScript(spec, scriptOrCommand)) {
-            await runScript(spec, scriptOrCommand, workspace);
-        } else if (Terraform.isSubcommand(scriptOrCommand)) {
-            const tf = new Terraform({
-                cwd: spec.workspaces[workspace].workingDirectory,
-                env: merge(process.env, config.env) as Hash,
-            });
-            await tf.subcommand(scriptOrCommand, commandArgs);
-        } else {
-            await runCommand(scriptOrCommand, commandArgs || [], {
-                cwd: spec.workspaces[workspace].workingDirectory,
-                env: merge(process.env, config.env) as Hash,
-            });
+        if (parts.length === 2) {
+            return match;
         }
-        popConfig();
+        return true;
     }
-    // teardown hook
-    if (context.spec.hooks && context.spec.hooks.teardown) {
-        log.info('Running teardown hook');
-        await runCommands(undefined, context, context.spec.hooks.teardown);
+
+    private static shouldRunSubprojects(name: string, specPath: string): boolean {
+        const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
+        const pattern = parts[0];
+        const match = isMatch(name, pattern);
+        if (parts.length > 1) {
+            return match;
+        }
+        return true;
+    }
+
+    private static async runSubprojects(
+        spec: ISpec,
+        specPath: string,
+        scriptOrCommand: string,
+        commandArgs?: Array<string>,
+    ) {
+        for (const subprojectName of Object.keys(spec.subprojects)) {
+            const subprojectSpec = (spec.subprojects[subprojectName] as unknown) as ISpec;
+            const nextSpecPath = Run.nextSpecPath(specPath);
+            await Run.runSpec(subprojectSpec, nextSpecPath, scriptOrCommand, commandArgs);
+        }
+    }
+
+    private static nextSpecPath(specPath: string): string {
+        if (specPath.includes(SUBPROJECT_HIERARCHICAL_DELIMITER)) {
+            return specPath
+                .split(SUBPROJECT_HIERARCHICAL_DELIMITER)
+                .slice(1)
+                .join(SUBPROJECT_HIERARCHICAL_DELIMITER);
+        }
+        return specPath;
+    }
+
+    static async runWorkspaces(
+        spec: ISpec,
+        groupOrWorkspace: string,
+        scriptOrCommand: string,
+        commandArgs?: Array<string>,
+    ) {
+        const configWithNodeModulesBinInPath = await getConfigWithNodeModulesBinInPath();
+        await withConfig(configWithNodeModulesBinInPath, async () => {
+            for (const workspaceName of Object.keys(spec.workspaces)) {
+                if (Run.shouldRunThisWorkspace(workspaceName, groupOrWorkspace)) {
+                    const workspace = spec.workspaces[workspaceName];
+                    await withConfig(workspace.config || {}, async () => {
+                        const fullName = Run.getWorkspaceFullName(spec, workspaceName);
+                        updateConfig({ env: { TF_WORKSPACE: fullName } });
+                        if (scriptOrCommand === '--config') {
+                            console.log(config);
+                        } else if (isScript(spec, scriptOrCommand)) {
+                            await runScript(spec, scriptOrCommand, workspaceName);
+                        } else if (Terraform.isSubcommand(scriptOrCommand)) {
+                            const tf = new Terraform({
+                                env: merge(process.env, config.env) as Hash,
+                            });
+                            await tf.subcommand(scriptOrCommand, commandArgs);
+                        } else {
+                            await runCommand(scriptOrCommand, commandArgs || [], {
+                                env: merge(process.env, config.env) as Hash,
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private static shouldRunThisWorkspace(name: string, specPath: string): boolean {
+        const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
+        const pattern = parts.slice(-1)[0];
+        const match = isMatch(name, pattern);
+        return match;
+    }
+
+    private static getWorkspaceFullName(spec: ISpec, workspaceName: string): string {
+        const prefix = spec.config?.workspacePrefix || '';
+        const suffix = spec.config?.workspaceSuffix || '';
+        return `${prefix}${workspaceName}${suffix}`;
     }
 }

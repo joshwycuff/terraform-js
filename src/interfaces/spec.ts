@@ -37,7 +37,13 @@ interface IWorkspace extends Hash<any> {
 
 type IWorkspaces = Hash<IWorkspace>;
 
-export interface ISpec extends Hash<any> {
+interface ISpecInternals {
+    filepath: string;
+    dirpath: string;
+    getFullName: () => string;
+}
+
+export interface ISpec extends ISpecInternals, Hash<any> {
     name: string;
     subprojects: Hash;
     config: IConfig;
@@ -50,7 +56,7 @@ export interface ISpec extends Hash<any> {
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _ISpec extends Hash<any> {
+export interface _ISpec extends ISpecInternals, Hash<any> {
     name?: string;
     subprojects?: Hash;
     config?: IConfig;

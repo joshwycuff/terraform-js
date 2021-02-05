@@ -13,10 +13,6 @@ export class MergeStack<T> {
         }
     }
 
-    get thestack(): T[] {
-        return this.stack;
-    }
-
     get length(): number {
         return this.stack.length;
     }

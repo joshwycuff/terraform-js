@@ -10,7 +10,12 @@ import { DOT_GIT } from '../constants';
 export async function searchUp(filename: string, startingDir?: string): Promise<Maybe<string>> {
     let dir = startingDir || process.cwd();
     while (dir !== '/') {
-        const filesAndFolders = await fs.readdirSync(dir);
+        let filesAndFolders: string[] = [];
+        try {
+            filesAndFolders = await fs.readdirSync(dir);
+        } catch (error) {
+            console.log(error);
+        }
         if (filesAndFolders.includes(filename)) {
             return path.join(dir, filename);
         }
@@ -19,4 +24,5 @@ export async function searchUp(filename: string, startingDir?: string): Promise<
         }
         dir = path.dirname(dir);
     }
+    return null;
 }
