@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/joshwycuff/terrascript/compare/v0.2.2...v0.3.0) (2021-02-05)
+
+
+### Features
+
+* inherit specs and full support for glob patterns ([1226a1c](https://github.com/joshwycuff/terrascript/commit/1226a1c12966ad9605c79d60de1278b46b4510de))
+
 ## [0.2.2](https://github.com/joshwycuff/terrascript/compare/v0.2.1...v0.2.2) (2021-02-04)
 
 
