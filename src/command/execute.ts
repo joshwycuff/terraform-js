@@ -1,4 +1,6 @@
 import { exec } from 'child_process';
+import { Hash } from '../interfaces/types';
+import { log } from '../logging/logging';
 
 /**
  * @param command
@@ -8,14 +10,14 @@ import { exec } from 'child_process';
 export async function execute(
     command: string,
     cwd?: string,
-    env?: { [key: string]: string },
+    env?: Hash,
 ): Promise<string> {
     return new Promise((resolve, reject) => {
         exec(command, { cwd, env }, (error, stdout, stderr) => {
             if (error === null) {
                 resolve(stdout);
             } else {
-                console.error(stderr);
+                log.error(stderr);
                 reject(stderr);
             }
         });
