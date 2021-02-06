@@ -8,6 +8,7 @@ import { log } from '../logging/logging';
  * @param {string} command - Command to run with space-separated arguments.
  * @param {string} cwd - Current working directory of the child process.
  * @param {Hash} env - Environment variable key-value pairs.
+ * @returns {Promise<string>} The stdout of the subprocess.
  */
 export async function execute(command: string, cwd?: string, env?: Hash): Promise<string> {
     return new Promise((resolve, reject) => {
