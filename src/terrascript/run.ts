@@ -1,14 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { merge } from 'lodash';
-import fs from 'fs';
-import { copySync } from 'fs-extra';
 import path from 'path';
 import { isMatch } from 'micromatch';
-import {
-    NODE_MODULES,
-    ORIGINAL_WORKING_DIRECTORY,
-    SUBPROJECT_HIERARCHICAL_DELIMITER,
-} from '../constants'; // just making sure constants get evaluated first
+import { NODE_MODULES, SUBPROJECT_HIERARCHICAL_DELIMITER } from '../constants'; // just making sure constants get evaluated first
 import { config, updateConfig } from '../config/config';
 import { runCommands, runScript } from './runner';
 import { run as runCommand } from '../command/command';
@@ -17,70 +10,12 @@ import { getCommitId } from '../git/git';
 import { Hash } from '../interfaces/types';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
-import { IContext } from '../interfaces/context';
 import { searchUp } from '../utils/search-up';
 import { withConfig } from '../utils/with-config';
 import { SPEC } from '../spec/specs';
 import { curryWith, withContexts } from '../utils/withs';
 import { inDir } from '../utils/in-dir';
 import { withSpec } from '../utils/with-spec';
-
-/**
- * @param spec
- * @param groupOrWorkspaceName
- * @param groupPath
- */
-function getWorkspaces(spec: ISpec, groupPath: string) {
-    const groupName = groupPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER).slice(-1)[0];
-    const { groups } = spec;
-    const workspaces = Object.keys(spec.workspaces);
-    if (groupName === 'all') {
-        return workspaces;
-    }
-    if (groups && groupName in groups) {
-        return groups[groupName];
-    }
-    if (workspaces.includes(groupName)) {
-        return [groupName];
-    }
-    const msg = `Group or workspace not found: ${groupName}`;
-    if (config.onWorkspaceNotFound === 'error') {
-        throw new Error(msg);
-    }
-    log.log(config.onWorkspaceNotFound, msg);
-    return [];
-}
-
-/**
- * @param spec
- * @param workspace
- */
-function getWorkspaceDirectory(spec: ISpec, workspace: string) {
-    const owd = ORIGINAL_WORKING_DIRECTORY;
-    const tmp = config.tmpDirectory;
-    const workspaceFullName = spec.workspaces[workspace].fullName;
-    if (tmp !== '') {
-        if (path.isAbsolute(tmp)) {
-            return path.join(tmp, workspaceFullName);
-        }
-        return path.join(owd, tmp, workspaceFullName);
-    }
-    const id = config.infrastructureDirectory;
-    if (path.isAbsolute(id)) {
-        return id;
-    }
-    return path.join(owd, id);
-}
-
-/**
- * @param spec
- * @param workspaceName
- */
-export async function initWorkspace(spec: ISpec, workspaceName: string) {
-    const workspace = spec.workspaces[workspaceName];
-    await fs.mkdirSync(workspace.workingDirectory, { recursive: true });
-    await copySync(config.infrastructureDirectory, workspace.workingDirectory);
-}
 
 /**
  *
@@ -95,14 +30,6 @@ async function getConfigWithNodeModulesBinInPath() {
         return nodeConfig;
     }
     return {};
-}
-
-/**
- * @param spec
- * @param scriptOrCommand
- */
-function isScript(spec: ISpec, scriptOrCommand: string): boolean {
-    return !!spec.scripts && scriptOrCommand in spec.scripts;
 }
 
 export class Run {
@@ -190,43 +117,58 @@ export class Run {
 
     static async runWorkspaces(
         spec: ISpec,
-        groupOrWorkspace: string,
+        specPath: string,
         scriptOrCommand: string,
         commandArgs?: Array<string>,
     ) {
         const configWithNodeModulesBinInPath = await getConfigWithNodeModulesBinInPath();
         await withConfig(configWithNodeModulesBinInPath, async () => {
-            for (const workspaceName of Object.keys(spec.workspaces)) {
-                if (Run.shouldRunThisWorkspace(workspaceName, groupOrWorkspace)) {
-                    const workspace = spec.workspaces[workspaceName];
-                    await withConfig(workspace.config || {}, async () => {
-                        const fullName = Run.getWorkspaceFullName(spec, workspaceName);
-                        updateConfig({ env: { TF_WORKSPACE: fullName } });
-                        if (scriptOrCommand === '--config') {
-                            console.log(config);
-                        } else if (isScript(spec, scriptOrCommand)) {
-                            await runScript(spec, scriptOrCommand, workspaceName);
-                        } else if (Terraform.isSubcommand(scriptOrCommand)) {
-                            const tf = new Terraform({
-                                env: merge(process.env, config.env) as Hash,
-                            });
-                            await tf.subcommand(scriptOrCommand, commandArgs);
-                        } else {
-                            await runCommand(scriptOrCommand, commandArgs || [], {
-                                env: merge(process.env, config.env) as Hash,
-                            });
-                        }
-                    });
-                }
+            for (const workspaceName of Run.getWorkspaces(spec, specPath)) {
+                const workspace = spec.workspaces[workspaceName];
+                await withConfig(workspace.config || {}, async () => {
+                    const fullName = Run.getWorkspaceFullName(spec, workspaceName);
+                    updateConfig({ env: { TF_WORKSPACE: fullName } });
+                    if (scriptOrCommand === '--config') {
+                        console.log(config);
+                    } else if (Run.isScript(spec, scriptOrCommand)) {
+                        await runScript(spec, scriptOrCommand, workspaceName);
+                    } else if (Terraform.isSubcommand(scriptOrCommand)) {
+                        const tf = new Terraform({
+                            env: merge(process.env, config.env) as Hash,
+                        });
+                        await tf.subcommand(scriptOrCommand, commandArgs);
+                    } else {
+                        await runCommand(scriptOrCommand, commandArgs || [], {
+                            env: merge(process.env, config.env) as Hash,
+                        });
+                    }
+                });
             }
         });
     }
 
-    private static shouldRunThisWorkspace(name: string, specPath: string): boolean {
+    private static getWorkspaces(spec: ISpec, specPath: string): string[] {
         const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
         const pattern = parts.slice(-1)[0];
-        const match = isMatch(name, pattern);
-        return match;
+        const specWorkspaces = Object.keys(spec.workspaces);
+        let workspaces;
+        if (Object.keys(spec.groups).includes(pattern)) {
+            workspaces = spec.groups[pattern].filter((name) => specWorkspaces.includes(name));
+        } else {
+            workspaces = specWorkspaces.filter((name) => isMatch(name, pattern));
+        }
+        if (workspaces.length === 0) {
+            const msg = `No matching workspaces in ${spec.name}: ${pattern}`;
+            if (config.onWorkspaceNotFound === 'error') {
+                throw new Error(msg);
+            }
+            log.log(config.onWorkspaceNotFound, msg);
+        }
+        return workspaces;
+    }
+
+    private static isScript(spec: ISpec, scriptOrCommand: string): boolean {
+        return !!spec.scripts && scriptOrCommand in spec.scripts;
     }
 
     private static getWorkspaceFullName(spec: ISpec, workspaceName: string): string {
