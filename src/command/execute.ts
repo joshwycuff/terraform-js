@@ -3,15 +3,13 @@ import { Hash } from '../interfaces/types';
 import { log } from '../logging/logging';
 
 /**
- * @param command
- * @param cwd
- * @param env
+ * Execute a command in a subprocess and return the stdout.
+ *
+ * @param {string} command - Command to run with space-separated arguments.
+ * @param {string} cwd - Current working directory of the child process.
+ * @param {Hash} env - Environment variable key-value pairs.
  */
-export async function execute(
-    command: string,
-    cwd?: string,
-    env?: Hash,
-): Promise<string> {
+export async function execute(command: string, cwd?: string, env?: Hash): Promise<string> {
     return new Promise((resolve, reject) => {
         exec(command, { cwd, env }, (error, stdout, stderr) => {
             if (error === null) {
