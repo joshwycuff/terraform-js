@@ -1,4 +1,4 @@
-import { CommandCommand } from '../../dist/command/command-command';
+import { CommandCommand } from '../../src/command/command-command';
 
 describe('command-command', () => {
     it('should take a string', () => {

@@ -135,8 +135,10 @@ export class CommandArguments implements _ICommandArguments {
         return this.getArray().join(' ');
     }
 
-    // eslint-disable-next-line require-jsdoc
-    private getArray() {
+    /**
+     * Get command arguments as array of strings.
+     */
+    getArray() {
         return this._subcommands.concat(this._args, this._flags, this._options).filter((x) => x);
     }
 }

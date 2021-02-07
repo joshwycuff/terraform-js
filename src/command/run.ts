@@ -19,7 +19,7 @@ export async function run(
     cwd?: string,
     env?: Hash,
     stdio: StdioOptions = 'inherit',
-    handlers: Hash<any> = {},
+    handlers: Hash<Hash<any>> = {},
 ): Promise<ExitCode> {
     log.silly(
         JSON.stringify({
@@ -41,7 +41,7 @@ export async function run(
         child.on('error', (err: Error) => {
             reject(err);
         });
-        for (const event of Object.keys(handlers.stdout)) {
+        for (const event of Object.keys(handlers.stdout || {})) {
             child.stdout?.on(event, handlers.stdout[event]);
         }
     });
