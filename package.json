@@ -15,7 +15,7 @@
     "fix:all": "yarn fix:format && yarn fix:lint",
     "fix:format": "prettier --write src/**/*.ts",
     "fix:lint": "eslint --fix src/",
-    "test": "jest --no-watch tests/",
+    "test": "jest --no-watch --runInBand tests/",
     "prepublishOnly": "yarn build"
   },
   "config": {

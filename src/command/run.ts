@@ -39,6 +39,7 @@ export async function run(
             }
         });
         child.on('error', (err: Error) => {
+            log.error(`'${command} ${args.join(' ')}' errored: ${err}`);
             reject(err);
         });
         for (const event of Object.keys(handlers.stdout || {})) {
