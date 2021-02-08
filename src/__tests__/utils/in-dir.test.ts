@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { inDir } from '../../src/utils/in-dir';
+import { inDir } from '../../utils/in-dir';
 
 const TMP = 'tmp';
 

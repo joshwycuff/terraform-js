@@ -1,5 +1,5 @@
-import { config, CONFIG_STACK } from '../../src/config/config';
-import { withConfig } from '../../src/utils/with-config';
+import { config, CONFIG_STACK } from '../../config/config';
+import { withConfig } from '../../utils/with-config';
 
 describe('withConfig', () => {
     it('should push config and then pop config', async () => {

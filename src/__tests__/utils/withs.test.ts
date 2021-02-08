@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { inDir } from '../../src/utils/in-dir';
-import { config, CONFIG_STACK } from '../../src/config/config';
-import { withConfig } from '../../src/utils/with-config';
-import { combineContexts, curryContext, withContexts } from '../../src/utils/withs';
+import { inDir } from '../../utils/in-dir';
+import { config, CONFIG_STACK } from '../../config/config';
+import { withConfig } from '../../utils/with-config';
+import { combineContexts, curryContext, withContexts } from '../../utils/withs';
 
 const TMP = 'tmp';
 

@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { config, pushConfig, popConfig, updateConfig, CONFIG_STACK } from '../../src/config/config';
+import { config, pushConfig, popConfig, updateConfig, CONFIG_STACK } from '../../config/config';
 
 describe('config', () => {
     describe('pushConfig', () => {

@@ -1,5 +1,5 @@
-import { run } from '../../src/command/run';
-import { Hash } from '../../src/interfaces/types';
+import { run } from '../../command/run';
+import { Hash } from '../../interfaces/types';
 
 describe('run', () => {
     const handlers = {

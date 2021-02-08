@@ -1,7 +1,8 @@
 import fs from 'fs';
 import yaml from 'js-yaml';
-import { runTerrascript } from '../../src/cli/commands/terrascript';
-import { TERRASCRIPT_YML } from '../../src/constants';
+import path from 'path';
+import { runTerrascript } from '../../cli/commands/terrascript';
+import { TERRASCRIPT_YML } from '../../constants';
 
 const CWD = process.cwd();
 const TMP = 'tmp';
@@ -107,6 +108,40 @@ describe('terrascript', () => {
             await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
             await runTerrascript('agroup', 'init', []);
             await runTerrascript('agroup', 'apply', ['-auto-approve']);
+        });
+    });
+
+    describe('sub project', () => {
+        beforeEach(async () => {
+            if (await fs.existsSync(TMP)) {
+                await fs.rmdirSync(TMP, { recursive: true });
+            }
+            await fs.mkdirSync(TMP);
+            process.chdir(TMP);
+        });
+        afterEach(async () => {
+            process.chdir(CWD);
+            // await fs.rmdirSync(TMP, { recursive: true });
+        });
+        test('basic', async () => {
+            const spec = {
+                subprojects: {
+                    subproject: './subproject',
+                },
+            };
+            const subspec = {
+                workspaces: {
+                    dev: {},
+                },
+            };
+            await fs.mkdirSync('subproject');
+            await writeYaml(TERRASCRIPT_YML, spec);
+            await writeYaml(path.join('subproject', TERRASCRIPT_YML), subspec);
+            await writeJson(path.join('subproject', MAIN_TF_JSON), DEFAULT_MAIN);
+            await runTerrascript('*', 'pwd', []);
+            await runTerrascript('*', 'init', []);
+            await runTerrascript('*', 'validate', []);
+            await runTerrascript('subproject/dev', 'apply', ['-auto-approve']);
         });
     });
 });

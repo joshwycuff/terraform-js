@@ -1,4 +1,4 @@
-import { CommandArguments } from '../../src/command/command-arguments';
+import { CommandArguments } from '../../command/command-arguments';
 
 describe('command-arguments', () => {
     it('should take nothing', () => {

@@ -1,4 +1,4 @@
-import { execute } from '../../src/command/execute';
+import { execute } from '../../command/execute';
 
 describe('execute', () => {
     it('should return stdout', async () => {

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { Terraform } from '../../src';
-import { Hash } from '../../src/interfaces/types';
-import { popConfig, pushConfig } from '../../src/config/config';
+import { Terraform } from '../..';
+import { Hash } from '../../interfaces/types';
+import { popConfig, pushConfig } from '../../config/config';
 
 const TMP = 'tmp';
 const TMP_TERRAFORM = path.join(TMP, '.terraform');

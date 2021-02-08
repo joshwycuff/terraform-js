@@ -1,5 +1,5 @@
 import { StdioOptions } from 'child_process';
-import { Command, CommandOptions, execute, run } from '../../src/command/command';
+import { Command, CommandOptions, execute, run } from '../../command/command';
 
 describe('command', () => {
     const handlers = {
