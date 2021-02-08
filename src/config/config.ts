@@ -43,13 +43,19 @@ export const config: _IConfig = {
     workspaceSuffix: '',
 };
 
-const CONFIG_STACK = new MergeStack<IConfig>(config);
+export const CONFIG_STACK = new MergeStack<IConfig>(config);
 
 /**
  *
  */
 function setTop() {
-    Object.assign(config, CONFIG_STACK.peek());
+    const top = CONFIG_STACK.peek();
+    Object.assign(config, top);
+    for (const key of Object.keys(config)) {
+        if (!(key in top)) {
+            delete config[key];
+        }
+    }
     updateLogLevel(config.logging.level);
 }
 
