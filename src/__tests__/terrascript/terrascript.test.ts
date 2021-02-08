@@ -3,6 +3,7 @@ import yaml from 'js-yaml';
 import path from 'path';
 import { runTerrascript } from '../../cli/commands/terrascript';
 import { TERRASCRIPT_YML } from '../../constants';
+import { ISpec } from '../../interfaces/spec';
 
 const CWD = process.cwd();
 const TMP = 'tmp';
@@ -42,6 +43,23 @@ async function writeJson(filepath: string, data: any) {
 
 /**
  * @param filepath
+ * @param exists
+ */
+async function expectFile(filepath: string, exists = true) {
+    await expect(await fs.existsSync(filepath)).toBe(exists);
+}
+
+/**
+ * @param filepath
+ * @param contents
+ */
+async function expectFileContent(filepath: string, contents: string) {
+    await expectFile(filepath);
+    await expect(await fs.readFileSync(filepath)).toEqual(contents);
+}
+
+/**
+ * @param filepath
  * @param data
  */
 async function writeYaml(filepath: string, data: any) {
@@ -76,10 +94,30 @@ describe('terrascript', () => {
             };
             await writeYaml(TERRASCRIPT_YML, spec);
             await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
-            await runTerrascript('*', 'pwd', []);
-            await runTerrascript('*', 'init', []);
-            await runTerrascript('*', 'validate', []);
-            await runTerrascript('*', 'apply', ['-auto-approve']);
+            await runTerrascript('dev', 'pwd', []);
+            await runTerrascript('dev', 'init', []);
+            await runTerrascript('dev', 'validate', []);
+            await runTerrascript('dev', 'apply', ['-auto-approve']);
+            expectFileContent('dev.txt', '');
+        });
+        test('tfVars', async () => {
+            const spec = {
+                config: {
+                    tfVars: {
+                        content: 'asdf',
+                    },
+                },
+                workspaces: {
+                    dev: {},
+                },
+            };
+            await writeYaml(TERRASCRIPT_YML, spec);
+            await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
+            await runTerrascript('dev', 'pwd', []);
+            await runTerrascript('dev', 'init', []);
+            await runTerrascript('dev', 'validate', []);
+            await runTerrascript('dev', 'apply', ['-auto-approve']);
+            expectFileContent('dev.txt', 'asdf');
         });
         test('script', async () => {
             const spec = {
@@ -87,7 +125,7 @@ describe('terrascript', () => {
                     dev: {},
                 },
                 scripts: {
-                    apply: 'apply -auto-approve',
+                    apply: ['apply -auto-approve'],
                 },
             };
             await writeYaml(TERRASCRIPT_YML, spec);
@@ -121,7 +159,7 @@ describe('terrascript', () => {
         });
         afterEach(async () => {
             process.chdir(CWD);
-            // await fs.rmdirSync(TMP, { recursive: true });
+            await fs.rmdirSync(TMP, { recursive: true });
         });
         test('basic', async () => {
             const spec = {
