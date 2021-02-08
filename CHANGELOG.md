@@ -1,3 +1,10 @@
+## [0.3.3](https://github.com/joshwycuff/terrascript/compare/v0.3.2...v0.3.3) (2021-02-08)
+
+
+### Bug Fixes
+
+* remove tests/ from tsconfig ([34bed2c](https://github.com/joshwycuff/terrascript/commit/34bed2c559041aec9128690d8da0d303330726e5))
+
 ## [0.3.2](https://github.com/joshwycuff/terrascript/compare/v0.3.1...v0.3.2) (2021-02-08)
 
 
