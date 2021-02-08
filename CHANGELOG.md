@@ -1,3 +1,11 @@
+## [0.3.1](https://github.com/joshwycuff/terrascript/compare/v0.3.0...v0.3.1) (2021-02-08)
+
+
+### Bug Fixes
+
+* add tests, docstrings, and some bug fixes ([6c54e2e](https://github.com/joshwycuff/terrascript/commit/6c54e2e20520ab4ca8c9ae0732d8be2c9b8660d7))
+* group functionality ([44e4dfb](https://github.com/joshwycuff/terrascript/commit/44e4dfb7eb2437634fbefd22ea6bb0ca87bc02f8))
+
 # [0.3.0](https://github.com/joshwycuff/terrascript/compare/v0.2.2...v0.3.0) (2021-02-05)
 
 
