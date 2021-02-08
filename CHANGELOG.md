@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/joshwycuff/terrascript/compare/v0.3.1...v0.3.2) (2021-02-08)
+
+
+### Bug Fixes
+
+* ignore tests/ for npm publish ([87184f3](https://github.com/joshwycuff/terrascript/commit/87184f362ba80326054ad20019abf05720dd9748))
+
 ## [0.3.1](https://github.com/joshwycuff/terrascript/compare/v0.3.0...v0.3.1) (2021-02-08)
 
 
