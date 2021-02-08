@@ -13,7 +13,7 @@ import { log } from '../logging/logging';
 import { searchUp } from '../utils/search-up';
 import { withConfig } from '../utils/with-config';
 import { SPEC } from '../spec/specs';
-import { curryWith, withContexts } from '../utils/withs';
+import { curryContext, withContexts } from '../utils/withs';
 import { inDir } from '../utils/in-dir';
 import { withSpec } from '../utils/with-spec';
 
@@ -40,9 +40,9 @@ export class Run {
         commandArgs?: Array<string>,
     ) {
         const infraDir = path.join(runSpec.dirpath, runSpec.config.infrastructureDirectory || '.');
-        const contextInfraDir = curryWith(inDir, infraDir);
-        const contextSpec = curryWith(withSpec, runSpec);
-        const contextConfig = curryWith(withConfig, () => SPEC().config);
+        const contextInfraDir = curryContext(inDir, infraDir);
+        const contextSpec = curryContext(withSpec, runSpec);
+        const contextConfig = curryContext(withConfig, () => SPEC().config);
         const contexts = [contextInfraDir, contextSpec, contextConfig];
         await withContexts(contexts, async () => {
             const spec = SPEC();
