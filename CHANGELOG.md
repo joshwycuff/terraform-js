@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/joshwycuff/terrascript/compare/v0.3.3...v0.4.0) (2021-02-09)
+
+
+### Features
+
+* implement templating ([81ccfa5](https://github.com/joshwycuff/terrascript/commit/81ccfa5b0b6f22b1396288f8f0b437058850a2f3))
+
 ## [0.3.3](https://github.com/joshwycuff/terrascript/compare/v0.3.2...v0.3.3) (2021-02-08)
 
 
