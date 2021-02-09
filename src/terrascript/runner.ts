@@ -6,8 +6,9 @@ import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
 import { ExitCode, Hash } from '../interfaces/types';
-import { run } from '../command/command';
+import { Command } from '../command/command';
 import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
+import { expandAndRunCommand } from './command';
 
 /**
  * @param tf
@@ -20,7 +21,8 @@ export async function runCommand(
     command: ICommand,
 ): Promise<ExitCode> {
     log.info(`Running command: ${JSON.stringify(command)}`);
-    let cmd: Hash = {};
+    let icmd: Hash = {};
+    let cmd: Command;
     let isTerraformSubcommand = false;
     const workspace = context.spec.workspaces[context.workspace || ''];
     if (typeof command === 'string') {
@@ -30,14 +32,15 @@ export async function runCommand(
         }
         const [cmdCommand, ...args] = cmdStr.split(' ');
         isTerraformSubcommand = Terraform.isSubcommand(cmdCommand);
-        cmd.command = cmdCommand;
-        cmd.args = args.join(' ');
+        icmd.command = cmdCommand;
+        icmd.args = args.join(' ');
     } else {
-        cmd = (command as unknown) as Hash;
+        icmd = (command as unknown) as Hash;
+        isTerraformSubcommand = Terraform.isSubcommand(icmd.command);
     }
     if (isTerraformSubcommand) {
         // pre-apply hook
-        if (cmd.command === 'apply') {
+        if (icmd.command === 'apply') {
             if (context.spec.hooks && context.spec.hooks['pre-apply']) {
                 log.info('Running pre-apply hook');
                 for (const hookCommand of context.spec.hooks['pre-apply']) {
@@ -46,7 +49,7 @@ export async function runCommand(
             }
         }
         // pre-destroy hook
-        if (cmd.command === 'destroy') {
+        if (icmd.command === 'destroy') {
             if (context.spec.hooks && context.spec.hooks['pre-destroy']) {
                 log.info('Running pre-destroy hook');
                 for (const hookCommand of context.spec.hooks['pre-destroy']) {
@@ -55,8 +58,8 @@ export async function runCommand(
             }
         }
     }
-    if ('condition' in cmd) {
-        const condition = cmd.condition as ICommand;
+    if ('condition' in icmd) {
+        const condition = icmd.condition as ICommand;
         log.info(`Running condition: ${JSON.stringify(condition)}`);
         const exitCode: ExitCode = (await runCommand(tf, context, condition)) || 0;
         if (exitCode > 0) {
@@ -65,10 +68,10 @@ export async function runCommand(
         }
         console.info('Condition passed.');
     }
-    if ('function' in cmd) {
-        log.info(`Running function: ${cmd.function}`);
-        const [m, f] = cmd.function.split('.');
-        const cwd = cmd.cwd || workspace?.workingDirectory || process.cwd();
+    if ('function' in icmd) {
+        log.info(`Running function: ${icmd.function}`);
+        const [m, f] = icmd.function.split('.');
+        const cwd = icmd.cwd || workspace?.workingDirectory || process.cwd();
         process.chdir(cwd);
         try {
             if (context.spec.modules) {
@@ -84,11 +87,13 @@ export async function runCommand(
         return 0;
     }
     if (isTerraformSubcommand) {
-        return (tf as Terraform).subcommand(cmd.command, cmd.args) as Promise<ExitCode>;
+        cmd = (await (tf as Terraform).subcommand(icmd.command, icmd.args, 'command')) as Command;
+    } else {
+        const cwd = icmd.cwd || workspace.workingDirectory;
+        const env = merge(process.env, config.env) as Hash;
+        cmd = new Command(icmd.command, icmd.args, { cwd, env });
     }
-    const cwd = cmd.cwd || workspace.workingDirectory;
-    const env = merge(process.env, config.env) as Hash;
-    return run(cmd.command, cmd.args, { cwd, env });
+    return expandAndRunCommand(context, cmd);
 }
 
 /**

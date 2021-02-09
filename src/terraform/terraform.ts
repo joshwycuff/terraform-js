@@ -752,25 +752,6 @@ export class Terraform {
         return execute(this.command, args, options);
     }
 
-    // eslint-disable-next-line jsdoc/require-returns
-    /**
-     * This allows running arbitrary commands with Terraform environment and is mostly meant for
-     * help with testing
-     *
-     * @param command
-     * @param args
-     * @param optionsOverrides
-     */
-    async _execute(
-        command: CommandCommandLike,
-        args: CommandArgumentsLike,
-        optionsOverrides: CommandOptions = {},
-    ): Promise<string> {
-        const options = cloneDeep(this.options);
-        merge(options, optionsOverrides);
-        return execute(command, args, options);
-    }
-
     /**
      * Run or execute a subcommand with additional arguments.
      *
@@ -832,8 +813,7 @@ export class Terraform {
             }
         }
         if (get === 'command') {
-            // this is only for help with testing
-            return new Command(this.command, tfArgs).get();
+            return new Command(this.command, tfArgs, this.options);
         }
         return getAsBoolean ? this.execute(tfArgs) : this.run(tfArgs);
     }
@@ -854,10 +834,28 @@ export class Terraform {
             },
         };
         if (get === 'command') {
-            // this is only for help with testing
-            return new Command(this.command, tfArgs).get();
+            return new Command(this.command, tfArgs, this.options);
         }
         return getAsBoolean ? this.execute(tfArgs, overrides) : this.run(tfArgs, overrides);
+    }
+
+    // eslint-disable-next-line jsdoc/require-returns
+    /**
+     * This allows running arbitrary commands with Terraform environment and is mostly meant for
+     * help with testing
+     *
+     * @param command
+     * @param args
+     * @param optionsOverrides
+     */
+    async _execute(
+        command: CommandCommandLike,
+        args: CommandArgumentsLike,
+        optionsOverrides: CommandOptions = {},
+    ): Promise<string> {
+        const options = cloneDeep(this.options);
+        merge(options, optionsOverrides);
+        return execute(command, args, options);
     }
 
     // endregion

@@ -3,8 +3,7 @@ import path from 'path';
 import { isMatch } from 'micromatch';
 import { NODE_MODULES, SUBPROJECT_HIERARCHICAL_DELIMITER } from '../constants'; // just making sure constants get evaluated first
 import { config, updateConfig } from '../config/config';
-import { runCommands, runScript } from './runner';
-import { run as runCommand } from '../command/command';
+import { runCommand, runCommands, runScript } from './runner';
 import { ISpec } from '../interfaces/spec';
 import { getCommitId } from '../git/git';
 import { Hash } from '../interfaces/types';
@@ -132,15 +131,21 @@ export class Run {
                         console.log(config);
                     } else if (Run.isScript(spec, scriptOrCommand)) {
                         await runScript(spec, scriptOrCommand, workspaceName);
-                    } else if (Terraform.isSubcommand(scriptOrCommand)) {
+                    } else {
                         const tf = new Terraform({
                             env: merge(process.env, config.env) as Hash,
                         });
-                        await tf.subcommand(scriptOrCommand, commandArgs);
-                    } else {
-                        await runCommand(scriptOrCommand, commandArgs || [], {
-                            env: merge(process.env, config.env) as Hash,
-                        });
+                        const context = {
+                            tf,
+                            spec: SPEC(),
+                            config,
+                            workspace: workspaceName,
+                        };
+                        const command = {
+                            command: scriptOrCommand,
+                            args: commandArgs,
+                        };
+                        await runCommand(tf, context, command);
                     }
                 });
             }

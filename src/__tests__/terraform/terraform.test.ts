@@ -300,38 +300,38 @@ describe('terraform', () => {
             const tf = new Terraform();
             tf.setAutoApprove(true);
             const command = await tf.subcommand('apply', [], 'command');
-            expect(command).toEqual('terraform apply -auto-approve');
+            expect(command.toString()).toEqual('terraform apply -auto-approve');
         });
         test('setAutoApprove destroy', async () => {
             const tf = new Terraform();
             tf.setAutoApprove(true);
             const command = await tf.subcommand('destroy', [], 'command');
-            expect(command).toEqual('terraform destroy -auto-approve');
+            expect(command.toString()).toEqual('terraform destroy -auto-approve');
         });
         test('setAutoApproveOn', async () => {
             const tf = new Terraform();
             tf.setAutoApproveOn();
             const command = await tf.subcommand('apply', [], 'command');
-            expect(command).toEqual('terraform apply -auto-approve');
+            expect(command.toString()).toEqual('terraform apply -auto-approve');
         });
         test('setAutoApproveOff', async () => {
             const tf = new Terraform();
             tf.setAutoApproveOn();
             tf.setAutoApproveOff();
             const command = await tf.subcommand('apply', [], 'command');
-            expect(command).toEqual('terraform apply');
+            expect(command.toString()).toEqual('terraform apply');
         });
         test('configureBackend', async () => {
             const tf = new Terraform();
             tf.configureBackend('asdf', 'qwer');
             const command = await tf.subcommand('init', [], 'command');
-            expect(command).toEqual('terraform init -backend-config="asdf=qwer"');
+            expect(command.toString()).toEqual('terraform init -backend-config="asdf=qwer"');
         });
         test('configureBackendFile', async () => {
             const tf = new Terraform();
             tf.configureBackendFile('asdf');
             const command = await tf.subcommand('init', [], 'command');
-            expect(command).toEqual('terraform init -backend-config="asdf"');
+            expect(command.toString()).toEqual('terraform init -backend-config="asdf"');
         });
     });
 
@@ -340,42 +340,42 @@ describe('terraform', () => {
             pushConfig({ tfVars: { asdf: 'qwer' } });
             const tf = new Terraform();
             const command = await tf.subcommand('plan', [], 'command');
-            expect(command).toEqual('terraform plan -var=asdf=qwer');
+            expect(command.toString()).toEqual('terraform plan -var=asdf=qwer');
             popConfig();
         });
         test('tfVarsFiles plan', async () => {
             pushConfig({ tfVarsFiles: ['asdf'] });
             const tf = new Terraform();
             const command = await tf.subcommand('plan', [], 'command');
-            expect(command).toEqual('terraform plan -var-file=asdf');
+            expect(command.toString()).toEqual('terraform plan -var-file=asdf');
             popConfig();
         });
         test('tfVars apply', async () => {
             pushConfig({ tfVars: { asdf: 'qwer' } });
             const tf = new Terraform();
             const command = await tf.subcommand('apply', [], 'command');
-            expect(command).toEqual('terraform apply -var=asdf=qwer');
+            expect(command.toString()).toEqual('terraform apply -var=asdf=qwer');
             popConfig();
         });
         test('tfVarsFiles apply', async () => {
             pushConfig({ tfVarsFiles: ['asdf'] });
             const tf = new Terraform();
             const command = await tf.subcommand('apply', [], 'command');
-            expect(command).toEqual('terraform apply -var-file=asdf');
+            expect(command.toString()).toEqual('terraform apply -var-file=asdf');
             popConfig();
         });
         test('tfVars destroy', async () => {
             pushConfig({ tfVars: { asdf: 'qwer' } });
             const tf = new Terraform();
             const command = await tf.subcommand('destroy', [], 'command');
-            expect(command).toEqual('terraform destroy -var=asdf=qwer');
+            expect(command.toString()).toEqual('terraform destroy -var=asdf=qwer');
             popConfig();
         });
         test('tfVarsFiles destroy', async () => {
             pushConfig({ tfVarsFiles: ['asdf'] });
             const tf = new Terraform();
             const command = await tf.subcommand('destroy', [], 'command');
-            expect(command).toEqual('terraform destroy -var-file=asdf');
+            expect(command.toString()).toEqual('terraform destroy -var-file=asdf');
             popConfig();
         });
     });

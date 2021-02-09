@@ -23,7 +23,7 @@ export class Command {
 
     private args: CommandArguments;
 
-    private options: CommandOptions;
+    options: CommandOptions;
 
     /**
      * Create a new instance of a command.
@@ -89,6 +89,13 @@ export class Command {
             this.options.stdio,
             this.options.handlers,
         );
+    }
+
+    static fromString(commandString: string, options?: CommandOptions): Command {
+        const commandParts = commandString.split(' ');
+        const command = commandParts[0];
+        const args = commandParts.slice(1);
+        return new Command(command, args, options);
     }
 }
 
