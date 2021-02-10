@@ -1,3 +1,10 @@
+## [0.5.2](https://github.com/joshwycuff/terrascript/compare/v0.5.1...v0.5.2) (2021-02-10)
+
+
+### Bug Fixes
+
+* backend config bug ([b1f9c0b](https://github.com/joshwycuff/terrascript/commit/b1f9c0b3c3221af48fa6e514c6a59992b5610071))
+
 ## [0.5.1](https://github.com/joshwycuff/terrascript/compare/v0.5.0...v0.5.1) (2021-02-10)
 
 
