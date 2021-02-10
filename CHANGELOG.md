@@ -1,3 +1,11 @@
+## [0.5.3](https://github.com/joshwycuff/terrascript/compare/v0.5.2...v0.5.3) (2021-02-10)
+
+
+### Bug Fixes
+
+* do not mutate process.env ([5f1db53](https://github.com/joshwycuff/terrascript/commit/5f1db53bc67309e7bd8b965784f8c14a0f171e0e))
+* do not overwrite process.env terraform variables ([3e544f4](https://github.com/joshwycuff/terrascript/commit/3e544f4404d048f3d03a4215f5d585bddd26a6f4))
+
 ## [0.5.2](https://github.com/joshwycuff/terrascript/compare/v0.5.1...v0.5.2) (2021-02-10)
 
 
