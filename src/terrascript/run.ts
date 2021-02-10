@@ -1,4 +1,4 @@
-import { merge } from 'lodash';
+import { merge, cloneDeep } from 'lodash';
 import path from 'path';
 import { isMatch } from 'micromatch';
 import { NODE_MODULES, SUBPROJECT_HIERARCHICAL_DELIMITER } from '../constants'; // just making sure constants get evaluated first
@@ -125,9 +125,11 @@ export class Run {
             for (const targetName of Run.getTargets(spec, specPath)) {
                 const target = spec.targets[targetName];
                 await withConfig(target.config || {}, async () => {
+                    const env: Hash = {};
+                    merge(env, cloneDeep(process.env), cloneDeep(config.env));
                     const tf = new Terraform({
                         cwd: config.infrastructureDirectory,
-                        env: merge(process.env, config.env) as Hash,
+                        env,
                     });
                     const context = {
                         tf,

@@ -1,4 +1,4 @@
-import { merge } from 'lodash';
+import { merge, cloneDeep } from 'lodash';
 import { ICommand } from '../interfaces/spec';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
@@ -94,7 +94,8 @@ export async function runCommand(context: IContext, command: ICommand): Promise<
         cmd = (await (tf as Terraform).subcommand(icmd.command, icmd.args, 'command')) as Command;
     } else {
         const cwd = icmd.cwd || spec.infrastructureDirectory;
-        const env = merge(process.env, config.env) as Hash;
+        const env: Hash = {};
+        merge(env, cloneDeep(process.env), cloneDeep(config.env));
         cmd = new Command(icmd.command, icmd.args, { cwd, env });
     }
     return Expand.expandAndRunCommand(commandContext, cmd);

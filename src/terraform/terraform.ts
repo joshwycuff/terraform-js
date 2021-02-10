@@ -69,7 +69,12 @@ export class Terraform {
     constructor(options?: CommandOptions, command: TerraformCommandLike = config.command) {
         this.command = new TerraformCommand(command);
         this.options = {};
-        merge(this.options, { env: process.env }, { env: config.env }, options);
+        merge(
+            this.options,
+            { env: cloneDeep(process.env) },
+            { env: cloneDeep(config.env) },
+            cloneDeep(options),
+        );
         this.tfVars = config.tfVars;
         this.tfVarsFiles = config.tfVarsFiles;
         this.autoApprove = config.autoApprove;
@@ -466,7 +471,7 @@ export class Terraform {
         if (this.options.env === undefined) {
             this.options.env = {
                 ...{},
-                ...process.env,
+                ...cloneDeep(process.env),
             };
         }
         this.options.env[name] = value;
