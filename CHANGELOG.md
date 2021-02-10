@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/joshwycuff/terrascript/compare/v0.4.0...v0.5.0) (2021-02-10)
+
+
+### Features
+
+* change spec terminology from workspace to target ([270de27](https://github.com/joshwycuff/terrascript/commit/270de2799452968852b7da244c933c59d5022621))
+
 # [0.4.0](https://github.com/joshwycuff/terrascript/compare/v0.3.3...v0.4.0) (2021-02-09)
 
 
