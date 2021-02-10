@@ -3,7 +3,7 @@ import yaml from 'js-yaml';
 import path from 'path';
 import { runTerrascript } from '../../cli/commands/terrascript';
 import { TERRASCRIPT_YML } from '../../constants';
-import { ISpec } from '../../interfaces/spec';
+import { config } from '../../config/config';
 
 const CWD = process.cwd();
 const TMP = 'tmp';
@@ -109,7 +109,7 @@ describe('terrascript', () => {
         });
         test('basic', async () => {
             const spec = {
-                workspaces: {
+                targets: {
                     dev: {},
                 },
             };
@@ -119,7 +119,24 @@ describe('terrascript', () => {
             await runTerrascript('dev', 'init', []);
             await runTerrascript('dev', 'validate', []);
             await runTerrascript('dev', 'apply', ['-auto-approve']);
-            expectFileContent('dev.txt', '');
+            await expectFileContent('default.txt', '');
+        });
+        test('workspace', async () => {
+            const spec = {
+                config: {
+                    env: {
+                        TF_WORKSPACE: '{{ target.name }}',
+                    },
+                },
+                targets: {
+                    dev: {},
+                },
+            };
+            await writeYaml(TERRASCRIPT_YML, spec);
+            await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
+            await runTerrascript('dev', 'init', []);
+            await runTerrascript('dev', 'apply', ['-auto-approve']);
+            await expectFileContent('dev.txt', '');
         });
         test('tfVars', async () => {
             const spec = {
@@ -128,21 +145,19 @@ describe('terrascript', () => {
                         content: 'asdf',
                     },
                 },
-                workspaces: {
+                targets: {
                     dev: {},
                 },
             };
             await writeYaml(TERRASCRIPT_YML, spec);
             await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
-            await runTerrascript('dev', 'pwd', []);
             await runTerrascript('dev', 'init', []);
-            await runTerrascript('dev', 'validate', []);
             await runTerrascript('dev', 'apply', ['-auto-approve']);
-            expectFileContent('dev.txt', 'asdf');
+            await expectFileContent('default.txt', 'asdf');
         });
         test('script', async () => {
             const spec = {
-                workspaces: {
+                targets: {
                     dev: {},
                 },
                 scripts: {
@@ -153,27 +168,37 @@ describe('terrascript', () => {
             await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
             await runTerrascript('dev', 'init', []);
             await runTerrascript('dev', 'apply', []);
-            expectFileContent('dev.txt', '');
+            await expectFileContent('default.txt', '');
         });
         test('group', async () => {
             const spec = {
-                workspaces: {
+                config: {
+                    env: {
+                        TF_WORKSPACE: '{{ target.name }}',
+                    },
+                },
+                targets: {
                     dev: {},
                     prod: {},
                 },
                 groups: {
-                    agroup: ['dev'],
+                    agroup: ['dev', 'prod'],
                 },
             };
             await writeYaml(TERRASCRIPT_YML, spec);
             await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
             await runTerrascript('dev', 'init', []);
             await runTerrascript('agroup', 'apply', ['-auto-approve']);
-            expectFilesContent(['dev.txt', 'prod.txt'], '');
+            await expectFilesContent(['dev.txt', 'prod.txt'], '');
         });
         test('glob pattern', async () => {
             const spec = {
-                workspaces: {
+                config: {
+                    env: {
+                        TF_WORKSPACE: '{{ target.name }}',
+                    },
+                },
+                targets: {
                     dev: {},
                     prod: {},
                 },
@@ -182,7 +207,7 @@ describe('terrascript', () => {
             await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
             await runTerrascript('dev', 'init', []);
             await runTerrascript('{dev,prod}', 'apply', ['-auto-approve']);
-            expectFilesContent(['dev.txt', 'prod.txt'], '');
+            await expectFilesContent(['dev.txt', 'prod.txt'], '');
         });
         test('tfVars && templating', async () => {
             const spec = {
@@ -192,7 +217,7 @@ describe('terrascript', () => {
                         content: '{{ spec.arbitrary }}',
                     },
                 },
-                workspaces: {
+                targets: {
                     dev: {},
                 },
             };
@@ -202,7 +227,7 @@ describe('terrascript', () => {
             await runTerrascript('dev', 'init', []);
             await runTerrascript('dev', 'validate', []);
             await runTerrascript('dev', 'apply', ['-auto-approve']);
-            expectFileContent('dev.txt', 'asdf');
+            await expectFileContent('default.txt', 'asdf');
         });
     });
 
@@ -225,7 +250,7 @@ describe('terrascript', () => {
                 },
             };
             const subspec = {
-                workspaces: {
+                targets: {
                     dev: {},
                 },
             };
@@ -237,7 +262,7 @@ describe('terrascript', () => {
             await runTerrascript('dev', 'init', []);
             await runTerrascript('dev', 'validate', []);
             await runTerrascript('subproject/dev', 'apply', ['-auto-approve']);
-            await expectFileContent('subproject/dev.txt', '');
+            await expectFileContent('subproject/default.txt', '');
         });
         test('tfVars && inheritance', async () => {
             const spec = {
@@ -251,7 +276,7 @@ describe('terrascript', () => {
                 },
             };
             const subspec = {
-                workspaces: {
+                targets: {
                     dev: {},
                 },
             };
@@ -263,7 +288,7 @@ describe('terrascript', () => {
             await runTerrascript('dev', 'init', []);
             await runTerrascript('dev', 'validate', []);
             await runTerrascript('subproject/dev', 'apply', ['-auto-approve']);
-            await expectFileContent('subproject/dev.txt', 'asdf');
+            await expectFileContent('subproject/default.txt', 'asdf');
         });
         test('tfVars && templating && inheritance', async () => {
             const spec = {
@@ -278,7 +303,7 @@ describe('terrascript', () => {
             };
             const subspec = {
                 name: 'subproject',
-                workspaces: {
+                targets: {
                     dev: {},
                 },
             };
@@ -290,7 +315,7 @@ describe('terrascript', () => {
             await runTerrascript('dev', 'init', []);
             await runTerrascript('dev', 'validate', []);
             await runTerrascript('subproject/dev', 'apply', ['-auto-approve']);
-            await expectFileContent('subproject/dev.txt', 'subproject');
+            await expectFileContent('subproject/default.txt', 'subproject');
         });
     });
 
@@ -306,21 +331,26 @@ describe('terrascript', () => {
             process.chdir(CWD);
             await fs.rmdirSync(TMP, { recursive: true });
         });
-        test('apply single workspace of multiple', async () => {
+        test('apply single target of multiple', async () => {
             const spec = {
+                config: {
+                    env: {
+                        TF_WORKSPACE: '{{ target.name }}',
+                    },
+                },
                 subprojects: {
                     subproject1: './subproject1',
                     subproject2: './subproject2',
                 },
             };
             const subproject1 = {
-                workspaces: {
+                targets: {
                     dev: {},
                     prod: {},
                 },
             };
             const subproject2 = {
-                workspaces: {
+                targets: {
                     dev: {},
                     prod: {},
                 },

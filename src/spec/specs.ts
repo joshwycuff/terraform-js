@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { cloneDeep, mergeWith } from 'lodash';
+import _, { cloneDeep, mergeWith } from 'lodash';
+
 import { TERRASCRIPT_YML } from '../constants';
 import { searchUp } from '../utils/search-up';
 import { _ISpec, ISpec } from '../interfaces/spec';
@@ -23,7 +24,7 @@ function customizer(objValue: any, srcValue: any, key: string, obj: any, src: an
     if (key === 'subprojects') {
         return srcValue;
     }
-    if (key === 'workspaces') {
+    if (key === 'targets') {
         const objClone = cloneDeep(objValue);
         const srcClone = cloneDeep(srcValue);
         for (const objKey of Object.keys(objValue)) {
@@ -80,6 +81,9 @@ export class Specs {
                 }
             }
             this.nodes[spec.name] = spec;
+            for (const target of Object.keys(spec.targets)) {
+                spec.targets[target].name = target;
+            }
             return spec;
         });
     }
@@ -189,8 +193,8 @@ export class Specs {
         if (spec.scripts === undefined) {
             spec.scripts = {};
         }
-        if (spec.workspaces === undefined) {
-            spec.workspaces = {};
+        if (spec.targets === undefined) {
+            spec.targets = {};
         }
         if (spec.definitions === undefined) {
             spec.definitions = {};

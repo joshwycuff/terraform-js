@@ -52,7 +52,7 @@ export async function initYmlFile() {
         hooks: {},
         modules: {},
         scripts: {},
-        workspaces: {
+        targets: {
             prod: {},
             dev: {},
         },

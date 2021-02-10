@@ -1,30 +1,34 @@
 import { merge } from 'lodash';
-import { Maybe } from 'maybe-optional';
-import { ICommand, ISpec } from '../interfaces/spec';
-import { config } from '../config/config';
+import { ICommand } from '../interfaces/spec';
 import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
 import { ExitCode, Hash } from '../interfaces/types';
 import { Command } from '../command/command';
-import { ORIGINAL_WORKING_DIRECTORY } from '../constants';
-import { expandAndRunCommand } from './command';
+import { Expand } from './command';
+import { inDir } from '../utils/in-dir';
 
 /**
  * @param tf
  * @param context
  * @param command
  */
-export async function runCommand(
-    tf: Maybe<Terraform>,
-    context: IContext,
-    command: ICommand,
-): Promise<ExitCode> {
+export async function runCommand(context: IContext, command: ICommand): Promise<ExitCode> {
     log.info(`Running command: ${JSON.stringify(command)}`);
+    const { spec, config, target } = context;
+    const tf = new Terraform(
+        { cwd: config.infrastructureDirectory, env: config.env as Hash },
+        config.command,
+    );
+    const commandContext: IContext = {
+        tf,
+        spec,
+        config,
+        target,
+    };
     let icmd: Hash = {};
     let cmd: Command;
     let isTerraformSubcommand = false;
-    const workspace = context.spec.workspaces[context.workspace || ''];
     if (typeof command === 'string') {
         let cmdStr = command;
         if (cmdStr.split(' ')[0] === 'terraform') {
@@ -41,19 +45,19 @@ export async function runCommand(
     if (isTerraformSubcommand) {
         // pre-apply hook
         if (icmd.command === 'apply') {
-            if (context.spec.hooks && context.spec.hooks['pre-apply']) {
+            if (spec.hooks && spec.hooks['pre-apply']) {
                 log.info('Running pre-apply hook');
-                for (const hookCommand of context.spec.hooks['pre-apply']) {
-                    await runCommand(tf, context, hookCommand);
+                for (const hookCommand of spec.hooks['pre-apply']) {
+                    await runCommand(commandContext, hookCommand);
                 }
             }
         }
         // pre-destroy hook
         if (icmd.command === 'destroy') {
-            if (context.spec.hooks && context.spec.hooks['pre-destroy']) {
+            if (spec.hooks && spec.hooks['pre-destroy']) {
                 log.info('Running pre-destroy hook');
-                for (const hookCommand of context.spec.hooks['pre-destroy']) {
-                    await runCommand(tf, context, hookCommand);
+                for (const hookCommand of spec.hooks['pre-destroy']) {
+                    await runCommand(commandContext, hookCommand);
                 }
             }
         }
@@ -61,7 +65,7 @@ export async function runCommand(
     if ('condition' in icmd) {
         const condition = icmd.condition as ICommand;
         log.info(`Running condition: ${JSON.stringify(condition)}`);
-        const exitCode: ExitCode = (await runCommand(tf, context, condition)) || 0;
+        const exitCode: ExitCode = (await runCommand(commandContext, condition)) || 0;
         if (exitCode > 0) {
             console.warn(`Condition failed with exit code ${exitCode}`);
             return exitCode;
@@ -71,29 +75,29 @@ export async function runCommand(
     if ('function' in icmd) {
         log.info(`Running function: ${icmd.function}`);
         const [m, f] = icmd.function.split('.');
-        const cwd = icmd.cwd || workspace?.workingDirectory || process.cwd();
-        process.chdir(cwd);
-        try {
-            if (context.spec.modules) {
-                const func = context.spec.modules[m].module[f];
-                await func(tf, context);
+        const cwd = icmd.cwd || spec.infrastructureDirectory || process.cwd();
+        return inDir(cwd, async () => {
+            try {
+                if (spec.modules) {
+                    const func = spec.modules[m].module[f];
+                    await func(commandContext);
+                }
+            } catch (error) {
+                log.error('Function failed.');
+                log.error(error);
+                return 1;
             }
-        } catch (error) {
-            log.error('Function failed.');
-            log.error(error);
-            return 1;
-        }
-        process.chdir(ORIGINAL_WORKING_DIRECTORY);
-        return 0;
+            return 0;
+        });
     }
     if (isTerraformSubcommand) {
         cmd = (await (tf as Terraform).subcommand(icmd.command, icmd.args, 'command')) as Command;
     } else {
-        const cwd = icmd.cwd || workspace.workingDirectory;
+        const cwd = icmd.cwd || spec.infrastructureDirectory;
         const env = merge(process.env, config.env) as Hash;
         cmd = new Command(icmd.command, icmd.args, { cwd, env });
     }
-    return expandAndRunCommand(context, cmd);
+    return Expand.expandAndRunCommand(commandContext, cmd);
 }
 
 /**
@@ -101,13 +105,9 @@ export async function runCommand(
  * @param context
  * @param commands
  */
-export async function runCommands(
-    tf: Maybe<Terraform>,
-    context: IContext,
-    commands: Array<ICommand>,
-): Promise<ExitCode> {
+export async function runCommands(context: IContext, commands: Array<ICommand>): Promise<ExitCode> {
     for (const command of commands) {
-        if (await runCommand(tf, context, command)) {
+        if (await runCommand(context, command)) {
             return 1;
         }
     }
@@ -115,19 +115,9 @@ export async function runCommands(
 }
 
 /**
- * @param spec
+ * @param context
  * @param scriptName
- * @param workspace
- * @param workspaceName
  */
-export async function runScript(spec: ISpec, scriptName: string, workspaceName: string) {
-    const workspace = spec.workspaces[workspaceName];
-    const tf = new Terraform({ cwd: workspace.workingDirectory });
-    const context: IContext = {
-        tf,
-        config,
-        spec,
-        workspace: workspaceName,
-    };
-    return runCommands(tf, context, spec.scripts[scriptName]);
+export async function runScript(context: IContext, scriptName: string) {
+    return runCommands(context, context.spec.scripts[scriptName]);
 }

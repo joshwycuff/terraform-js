@@ -34,7 +34,16 @@ export class MergeStack<T> {
         return this.stack.pop() as T;
     }
 
-    peek() {
+    popTo(length: number): void {
+        if (this.length > length) {
+            const N = this.length - length;
+            for (let i = 0; i < N; i++) {
+                this.pop();
+            }
+        }
+    }
+
+    peek(): T {
         return this.stack.slice(-1)[0];
     }
 }

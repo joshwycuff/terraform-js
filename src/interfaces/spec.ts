@@ -18,7 +18,7 @@ interface _ICommand {
 
 export type ICommand = string | _ICommand | _IFunction;
 
-type IGroups = Hash<Array<string>>;
+type ITargetGroups = Hash<Array<string>>;
 
 interface IHooks {
     setup?: Array<ICommand>;
@@ -31,27 +31,34 @@ type IModules = Hash<any>;
 
 type IScripts = Hash<Array<ICommand>>;
 
-interface IWorkspace extends Hash<any> {
+export interface ITarget extends Hash<any> {
     config?: IConfig;
 }
 
-type IWorkspaces = Hash<IWorkspace>;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface _ITarget extends Hash<any> {
+    config: IConfig;
+}
+
+type ITargets = Hash<ITarget>;
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type _ITargets = Hash<_ITarget>;
 
 interface ISpecInternals {
     filepath: string;
     dirpath: string;
-    getFullName: () => string;
 }
 
 export interface ISpec extends ISpecInternals, Hash<any> {
     name: string;
     subprojects: Hash;
     config: IConfig;
-    groups: IGroups;
+    groups: ITargetGroups;
     hooks: IHooks;
     modules: IModules;
     scripts: IScripts;
-    workspaces: IWorkspaces;
+    targets: ITargets;
     definitions: Hash<any>;
 }
 
@@ -60,10 +67,10 @@ export interface _ISpec extends ISpecInternals, Hash<any> {
     name?: string;
     subprojects?: Hash;
     config?: IConfig;
-    groups?: IGroups;
+    groups?: ITargetGroups;
     hooks?: IHooks;
     modules?: IModules;
     scripts?: IScripts;
-    workspaces?: IWorkspaces;
+    targets?: _ITargets;
     definitions?: Hash<any>;
 }

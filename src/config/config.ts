@@ -38,9 +38,7 @@ export const config: _IConfig = {
     },
     gitCommitIdEnvVar: 'TF_VAR_GIT_COMMIT_ID',
     onSubprojectNotFound: 'warn',
-    onWorkspaceNotFound: 'warn',
-    workspacePrefix: '',
-    workspaceSuffix: '',
+    onTargetNotFound: 'warn',
 };
 
 export const CONFIG_STACK = new MergeStack<IConfig>(config);

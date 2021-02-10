@@ -36,9 +36,7 @@ export interface _IConfig extends Hash<any> {
     };
     gitCommitIdEnvVar: string;
     onSubprojectNotFound: LogLevel;
-    onWorkspaceNotFound: LogLevel;
-    workspacePrefix: string;
-    workspaceSuffix: string;
+    onTargetNotFound: LogLevel;
 }
 
 export interface IConfig extends Hash<any> {
@@ -61,7 +59,5 @@ export interface IConfig extends Hash<any> {
     };
     gitCommitIdEnvVar?: string;
     onSubprojectNotFound?: LogLevel;
-    onWorkspaceNotFound?: LogLevel;
-    workspacePrefix?: string;
-    workspaceSuffix?: string;
+    onTargetNotFound?: LogLevel;
 }

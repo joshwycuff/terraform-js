@@ -57,13 +57,13 @@ export class Run {
             // setup hook
             if (spec.hooks && spec.hooks.setup) {
                 log.info('Running setup hook');
-                await runCommands(undefined, { config, spec }, spec.hooks.setup);
+                await runCommands({ config, spec }, spec.hooks.setup);
             }
-            await Run.runWorkspaces(spec, specPath, scriptOrCommand, commandArgs);
+            await Run.runTargets(spec, specPath, scriptOrCommand, commandArgs);
             // teardown hook
             if (spec.hooks && spec.hooks.teardown) {
                 log.info('Running teardown hook');
-                await runCommands(undefined, { config, spec }, spec.hooks.teardown);
+                await runCommands({ config, spec }, spec.hooks.teardown);
             }
         });
     }
@@ -114,7 +114,7 @@ export class Run {
         return specPath;
     }
 
-    static async runWorkspaces(
+    static async runTargets(
         spec: ISpec,
         specPath: string,
         scriptOrCommand: string,
@@ -122,63 +122,56 @@ export class Run {
     ) {
         const configWithNodeModulesBinInPath = await getConfigWithNodeModulesBinInPath();
         await withConfig(configWithNodeModulesBinInPath, async () => {
-            for (const workspaceName of Run.getWorkspaces(spec, specPath)) {
-                const workspace = spec.workspaces[workspaceName];
-                await withConfig(workspace.config || {}, async () => {
-                    const fullName = Run.getWorkspaceFullName(spec, workspaceName);
-                    updateConfig({ env: { TF_WORKSPACE: fullName } });
+            for (const targetName of Run.getTargets(spec, specPath)) {
+                const target = spec.targets[targetName];
+                await withConfig(target.config || {}, async () => {
+                    const tf = new Terraform({
+                        cwd: config.infrastructureDirectory,
+                        env: merge(process.env, config.env) as Hash,
+                    });
+                    const context = {
+                        tf,
+                        spec: SPEC(),
+                        config,
+                        target,
+                    };
                     if (scriptOrCommand === '--config') {
                         console.log(config);
                     } else if (Run.isScript(spec, scriptOrCommand)) {
-                        await runScript(spec, scriptOrCommand, workspaceName);
+                        await runScript(context, scriptOrCommand);
                     } else {
-                        const tf = new Terraform({
-                            env: merge(process.env, config.env) as Hash,
-                        });
-                        const context = {
-                            tf,
-                            spec: SPEC(),
-                            config,
-                            workspace: workspaceName,
-                        };
                         const command = {
                             command: scriptOrCommand,
                             args: commandArgs,
                         };
-                        await runCommand(tf, context, command);
+                        await runCommand(context, command);
                     }
                 });
             }
         });
     }
 
-    private static getWorkspaces(spec: ISpec, specPath: string): string[] {
+    private static getTargets(spec: ISpec, specPath: string): string[] {
         const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
         const pattern = parts.slice(-1)[0];
-        const specWorkspaces = Object.keys(spec.workspaces);
-        let workspaces;
+        const specTargets = Object.keys(spec.targets);
+        let targets;
         if (Object.keys(spec.groups).includes(pattern)) {
-            workspaces = spec.groups[pattern].filter((name) => specWorkspaces.includes(name));
+            targets = spec.groups[pattern].filter((name) => specTargets.includes(name));
         } else {
-            workspaces = specWorkspaces.filter((name) => isMatch(name, pattern));
+            targets = specTargets.filter((name) => isMatch(name, pattern));
         }
-        if (workspaces.length === 0) {
-            const msg = `No matching workspaces in ${spec.name}: ${pattern}`;
-            if (config.onWorkspaceNotFound === 'error') {
+        if (targets.length === 0) {
+            const msg = `No matching targets in ${spec.name}: ${pattern}`;
+            if (config.onTargetNotFound === 'error') {
                 throw new Error(msg);
             }
-            log.log(config.onWorkspaceNotFound, msg);
+            log.log(config.onTargetNotFound, msg);
         }
-        return workspaces;
+        return targets;
     }
 
     private static isScript(spec: ISpec, scriptOrCommand: string): boolean {
         return !!spec.scripts && scriptOrCommand in spec.scripts;
-    }
-
-    private static getWorkspaceFullName(spec: ISpec, workspaceName: string): string {
-        const prefix = spec.config?.workspacePrefix || '';
-        const suffix = spec.config?.workspaceSuffix || '';
-        return `${prefix}${workspaceName}${suffix}`;
     }
 }
