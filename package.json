@@ -17,7 +17,6 @@
     "fix:lint": "eslint --fix src/",
     "test": "jest --no-watch --runInBand src/__tests__/",
     "prepublishOnly": "yarn build",
-    "local:cycle": "yarn build && yarn local:publish",
     "local:publish": "yalc publish --push"
   },
   "config": {

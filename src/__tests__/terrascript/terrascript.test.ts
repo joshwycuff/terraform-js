@@ -1,9 +1,8 @@
-import fs from 'fs';
+import fs, { writeFileSync } from 'fs';
 import yaml from 'js-yaml';
 import path from 'path';
 import { runTerrascript } from '../../cli/commands/terrascript';
 import { TERRASCRIPT_YML } from '../../constants';
-import { config } from '../../config/config';
 
 const CWD = process.cwd();
 const TMP = 'tmp';
@@ -32,6 +31,12 @@ const DEFAULT_MAIN = {
         },
     },
 };
+const DEFAULT_MODULE = `module.exports = {
+    qwer: (context) => {
+        console.log('qwer')
+    }
+}
+`;
 
 /**
  * @param filepath
@@ -88,15 +93,19 @@ async function writeYaml(filepath: string, data: any) {
 }
 
 describe('terrascript', () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation();
+
     beforeAll(async () => {
         jest.setTimeout(6000000);
     });
     afterAll(async () => {
+        spy.mockRestore();
         jest.setTimeout(5000);
     });
 
     describe('single project', () => {
         beforeEach(async () => {
+            spy.mockReset();
             if (await fs.existsSync(TMP)) {
                 await fs.rmdirSync(TMP, { recursive: true });
             }
@@ -229,10 +238,35 @@ describe('terrascript', () => {
             await runTerrascript('dev', 'apply', ['-auto-approve']);
             await expectFileContent('default.txt', 'asdf');
         });
+        test('module function', async () => {
+            const spec = {
+                modules: {
+                    asdf: './asdf.js',
+                },
+                targets: {
+                    dev: {},
+                },
+                scripts: {
+                    asdf: [
+                        {
+                            function: 'asdf.qwer',
+                        },
+                    ],
+                },
+            };
+            await writeYaml(TERRASCRIPT_YML, spec);
+            await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
+            await writeFileSync('asdf.js', DEFAULT_MODULE);
+            await runTerrascript('dev', 'asdf', []);
+            expect(spy).toHaveBeenCalled();
+            const stdout = spy.mock.calls[0][0];
+            expect(stdout).toEqual('qwer');
+        });
     });
 
     describe('subproject', () => {
         beforeEach(async () => {
+            spy.mockReset();
             if (await fs.existsSync(TMP)) {
                 await fs.rmdirSync(TMP, { recursive: true });
             }
@@ -307,8 +341,8 @@ describe('terrascript', () => {
                     dev: {},
                 },
             };
-            await fs.mkdirSync('subproject');
             await writeYaml(TERRASCRIPT_YML, spec);
+            await fs.mkdirSync('subproject');
             await writeYaml(path.join('subproject', TERRASCRIPT_YML), subspec);
             await writeJson(path.join('subproject', MAIN_TF_JSON), DEFAULT_MAIN);
             await runTerrascript('dev', 'pwd', []);
@@ -317,10 +351,43 @@ describe('terrascript', () => {
             await runTerrascript('subproject/dev', 'apply', ['-auto-approve']);
             await expectFileContent('subproject/default.txt', 'subproject');
         });
+        test('module function', async () => {
+            const spec = {
+                subprojects: {
+                    subproject: './subproject',
+                },
+            };
+            const subspec = {
+                name: 'subproject',
+                modules: {
+                    asdf: './asdf.js',
+                },
+                targets: {
+                    dev: {},
+                },
+                scripts: {
+                    asdf: [
+                        {
+                            function: 'asdf.qwer',
+                        },
+                    ],
+                },
+            };
+            await writeYaml(TERRASCRIPT_YML, spec);
+            await fs.mkdirSync('subproject');
+            await writeYaml(path.join('subproject', TERRASCRIPT_YML), subspec);
+            await writeJson(path.join('subproject', MAIN_TF_JSON), DEFAULT_MAIN);
+            await writeFileSync(path.join('subproject', 'asdf.js'), DEFAULT_MODULE);
+            await runTerrascript('dev', 'asdf', []);
+            expect(spy).toHaveBeenCalled();
+            const stdout = spy.mock.calls[0][0];
+            expect(stdout).toEqual('qwer');
+        });
     });
 
     describe('subprojects', () => {
         beforeEach(async () => {
+            spy.mockReset();
             if (await fs.existsSync(TMP)) {
                 await fs.rmdirSync(TMP, { recursive: true });
             }

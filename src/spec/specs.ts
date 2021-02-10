@@ -133,8 +133,8 @@ export class Specs {
     }
 
     private async compileModule(modulePath: string) {
-        // eslint-disable-next-line global-require
-        return require(modulePath);
+        // eslint-disable-next-line global-require,import/no-dynamic-require
+        return require(path.join(process.cwd(), modulePath));
     }
 
     private async getRootPath(cwd: string): Promise<ISpec[]> {

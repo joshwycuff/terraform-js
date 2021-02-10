@@ -79,7 +79,7 @@ export async function runCommand(context: IContext, command: ICommand): Promise<
         return inDir(cwd, async () => {
             try {
                 if (spec.modules) {
-                    const func = spec.modules[m].module[f];
+                    const func = spec.modules[m][f];
                     await func(commandContext);
                 }
             } catch (error) {
