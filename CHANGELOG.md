@@ -1,3 +1,10 @@
+## [0.5.1](https://github.com/joshwycuff/terrascript/compare/v0.5.0...v0.5.1) (2021-02-10)
+
+
+### Bug Fixes
+
+* javascript module scripting ([4c63020](https://github.com/joshwycuff/terrascript/commit/4c630203a38e6b5e6f6aab84ac156d11cfacd13d))
+
 # [0.5.0](https://github.com/joshwycuff/terrascript/compare/v0.4.0...v0.5.0) (2021-02-10)
 
 
