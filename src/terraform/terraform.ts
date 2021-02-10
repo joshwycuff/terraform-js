@@ -775,10 +775,10 @@ export class Terraform {
         if (arg1 === 'init') {
             if (Object.keys(this.backendConfig).length > 0) {
                 Object.keys(this.backendConfig).forEach((key) => {
-                    tfArgs.addOption(`-backend-config="${key}=${this.backendConfig[key]}"`);
+                    tfArgs.addOption(`-backend-config=${key}=${this.backendConfig[key]}`);
                 });
             } else if (this.backendConfigFile) {
-                tfArgs.addOption(`-backend-config="${this.backendConfigFile}"`);
+                tfArgs.addOption(`-backend-config=${this.backendConfigFile}`);
             }
             return this._init(tfArgs, get);
         }

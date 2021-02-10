@@ -325,13 +325,13 @@ describe('terraform', () => {
             const tf = new Terraform();
             tf.configureBackend('asdf', 'qwer');
             const command = await tf.subcommand('init', [], 'command');
-            expect(command.toString()).toEqual('terraform init -backend-config="asdf=qwer"');
+            expect(command.toString()).toEqual('terraform init -backend-config=asdf=qwer');
         });
         test('configureBackendFile', async () => {
             const tf = new Terraform();
             tf.configureBackendFile('asdf');
             const command = await tf.subcommand('init', [], 'command');
-            expect(command.toString()).toEqual('terraform init -backend-config="asdf"');
+            expect(command.toString()).toEqual('terraform init -backend-config=asdf');
         });
     });
 
