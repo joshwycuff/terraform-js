@@ -9,6 +9,7 @@ import { _ISpec, ISpec } from '../interfaces/spec';
 import { Hash } from '../interfaces/types';
 import { inDir } from '../utils/in-dir';
 import { MergeStack } from '../utils/merge-stack';
+import { log } from '../logging/logging';
 
 /**
  * @param objValue
@@ -66,6 +67,8 @@ export class Specs {
     }
 
     private async compileSpec(dir: string, deep = true) {
+        const ymlfile = path.join(process.cwd(), dir, TERRASCRIPT_YML);
+        log.debug(`Compiling ${ymlfile}`);
         return inDir(dir, async () => {
             const spec = await Specs.loadSpecFromDir();
             if (spec.name in this.nodes) {
@@ -161,7 +164,7 @@ export class Specs {
     }
 
     private static async loadSpec(filepath: string): Promise<ISpec> {
-        const spec = yaml.load(fs.readFileSync(filepath, 'utf-8')) as _ISpec;
+        const spec = (yaml.load(fs.readFileSync(filepath, 'utf-8')) || {}) as _ISpec;
         spec.filepath = filepath;
         spec.dirpath = path.dirname(filepath);
         return Specs.fillSpec(spec);
@@ -169,34 +172,34 @@ export class Specs {
 
     private static fillSpec(unfilledSpec: _ISpec): ISpec {
         const spec = cloneDeep(unfilledSpec);
-        if (spec.name === undefined) {
+        if (!spec.name) {
             spec.name = path.basename(path.dirname(spec.filepath));
         }
-        if (spec.subprojects === undefined) {
+        if (!spec.subprojects) {
             spec.subprojects = {};
         }
-        if (spec.config === undefined) {
+        if (!spec.config) {
             spec.config = {};
         }
-        if (spec.config.infrastructureDirectory === undefined) {
+        if (!spec.config.infrastructureDirectory) {
             spec.config.infrastructureDirectory = '.';
         }
-        if (spec.groups === undefined) {
+        if (!spec.groups) {
             spec.groups = {};
         }
-        if (spec.hooks === undefined) {
+        if (!spec.hooks) {
             spec.hooks = {};
         }
-        if (spec.modules === undefined) {
+        if (!spec.modules) {
             spec.modules = {};
         }
-        if (spec.scripts === undefined) {
+        if (!spec.scripts) {
             spec.scripts = {};
         }
-        if (spec.targets === undefined) {
+        if (!spec.targets) {
             spec.targets = {};
         }
-        if (spec.definitions === undefined) {
+        if (!spec.definitions) {
             spec.definitions = {};
         }
         return spec as ISpec;
