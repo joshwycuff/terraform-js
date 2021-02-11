@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/joshwycuff/terrascript/compare/v0.5.4...v0.6.0) (2021-02-11)
+
+
+### Features
+
+* implement more hooks ([d578e38](https://github.com/joshwycuff/terrascript/commit/d578e385e8fcc02d5ae6da13549d7ca86d76e6a6))
+
 ## [0.5.4](https://github.com/joshwycuff/terrascript/compare/v0.5.3...v0.5.4) (2021-02-11)
 
 
