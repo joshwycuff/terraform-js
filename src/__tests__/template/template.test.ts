@@ -4,7 +4,7 @@ import { IContext } from '../../interfaces/context';
 describe('template', () => {
     it('should not expand strings with no templates', () => {
         const context = {
-            config: {},
+            conf: {},
             spec: {},
         } as IContext;
         const str = 'asdf';
@@ -64,13 +64,13 @@ describe('template', () => {
         const expanded = expandTemplate(context, str);
         expect(expanded).toEqual('qwer');
     });
-    it('should make config available', () => {
+    it('should make conf available', () => {
         const context = {
-            config: {
+            conf: {
                 asdf: 'qwer',
             },
         } as unknown as IContext;
-        const str = '{{ config.asdf }}';
+        const str = '{{ conf.asdf }}';
         const expanded = expandTemplate(context, str);
         expect(expanded).toEqual('qwer');
     });

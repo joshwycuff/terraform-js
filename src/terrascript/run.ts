@@ -3,11 +3,10 @@ import path from 'path';
 import { isMatch } from 'micromatch';
 import { NODE_MODULES, SUBPROJECT_HIERARCHICAL_DELIMITER } from '../constants'; // just making sure constants get evaluated first
 import { config, updateConfig } from '../config/config';
-import { runCommand, runCommands, runScript } from './runner';
-import { ISpec } from '../interfaces/spec';
+import { Runner } from './runner';
+import { ISpec, ITarget } from '../interfaces/spec';
 import { getCommitId } from '../git/git';
 import { Hash } from '../interfaces/types';
-import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { searchUp } from '../utils/search-up';
 import { withConfig } from '../utils/with-config';
@@ -17,7 +16,7 @@ import { inDir } from '../utils/in-dir';
 import { withSpec } from '../utils/with-spec';
 
 /**
- *
+ * TODO
  */
 async function getConfigWithNodeModulesBinInPath() {
     const processEnvPath = process?.env?.PATH?.split(':') || [];
@@ -31,7 +30,18 @@ async function getConfigWithNodeModulesBinInPath() {
     return {};
 }
 
+/**
+ * TODO
+ */
 export class Run {
+    /**
+     * TODO
+     *
+     * @param runSpec
+     * @param specPath
+     * @param scriptOrCommand
+     * @param commandArgs
+     */
     static async runSpec(
         runSpec: ISpec,
         specPath: string,
@@ -54,20 +64,17 @@ export class Run {
             if (config.gitCommitIdEnvVar) {
                 updateConfig({ env: { [config.gitCommitIdEnvVar]: await getCommitId() } });
             }
-            // setup hook
-            if (spec.hooks && spec.hooks.setup) {
-                log.info('Running setup hook');
-                await runCommands({ config, spec }, spec.hooks.setup);
-            }
             await Run.runTargets(spec, specPath, scriptOrCommand, commandArgs);
-            // teardown hook
-            if (spec.hooks && spec.hooks.teardown) {
-                log.info('Running teardown hook');
-                await runCommands({ config, spec }, spec.hooks.teardown);
-            }
         });
     }
 
+    /**
+     * TODO
+     *
+     * @param name
+     * @param specPath
+     * @private
+     */
     private static shouldRunThisSpec(name: string, specPath: string): boolean {
         const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
         const pattern = parts[0];
@@ -81,6 +88,13 @@ export class Run {
         return true;
     }
 
+    /**
+     * TODO
+     *
+     * @param name
+     * @param specPath
+     * @private
+     */
     private static shouldRunSubprojects(name: string, specPath: string): boolean {
         const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
         const pattern = parts[0];
@@ -91,6 +105,15 @@ export class Run {
         return true;
     }
 
+    /**
+     * TODO
+     *
+     * @param spec
+     * @param specPath
+     * @param scriptOrCommand
+     * @param commandArgs
+     * @private
+     */
     private static async runSubprojects(
         spec: ISpec,
         specPath: string,
@@ -104,6 +127,12 @@ export class Run {
         }
     }
 
+    /**
+     * TODO
+     *
+     * @param specPath
+     * @private
+     */
     private static nextSpecPath(specPath: string): string {
         if (specPath.includes(SUBPROJECT_HIERARCHICAL_DELIMITER)) {
             return specPath
@@ -114,6 +143,14 @@ export class Run {
         return specPath;
     }
 
+    /**
+     * TODO
+     *
+     * @param spec
+     * @param specPath
+     * @param scriptOrCommand
+     * @param commandArgs
+     */
     static async runTargets(
         spec: ISpec,
         specPath: string,
@@ -122,37 +159,81 @@ export class Run {
     ) {
         const configWithNodeModulesBinInPath = await getConfigWithNodeModulesBinInPath();
         await withConfig(configWithNodeModulesBinInPath, async () => {
-            for (const targetName of Run.getTargets(spec, specPath)) {
-                const target = spec.targets[targetName];
-                await withConfig(target.config || {}, async () => {
-                    const env: Hash = {};
-                    merge(env, cloneDeep(process.env), cloneDeep(config.env));
-                    const tf = new Terraform({
-                        cwd: config.infrastructureDirectory,
-                        env,
-                    });
-                    const context = {
-                        tf,
-                        spec: SPEC(),
-                        config,
-                        target,
-                    };
-                    if (scriptOrCommand === '--config') {
-                        console.log(config);
-                    } else if (Run.isScript(spec, scriptOrCommand)) {
-                        await runScript(context, scriptOrCommand);
-                    } else {
-                        const command = {
-                            command: scriptOrCommand,
-                            args: commandArgs,
-                        };
-                        await runCommand(context, command);
-                    }
-                });
+            const targetNames = Run.getTargets(spec, specPath);
+            if (targetNames.length > 0) {
+                const context = { conf: config, spec };
+                // beforeEachSubproject hook
+                if (spec.hooks.beforeEachSubproject) {
+                    log.info('Running beforeEachSubproject hook');
+                    await Runner.runCommands(context, spec.hooks.beforeEachSubproject);
+                }
+                for (const targetName of targetNames) {
+                    const target = spec.targets[targetName];
+                    await Run.runTarget(SPEC(), target, scriptOrCommand, commandArgs);
+                }
+                // afterEachSubproject hook
+                if (spec.hooks.afterEachSubproject) {
+                    log.info('Running afterEachSubproject hook');
+                    await Runner.runCommands(context, spec.hooks.afterEachSubproject);
+                }
             }
         });
     }
 
+    /**
+     * TODO
+     *
+     * @param spec
+     * @param target
+     * @param scriptOrCommand
+     * @param commandArgs
+     * @private
+     */
+    private static async runTarget(
+        spec: ISpec,
+        target: ITarget,
+        scriptOrCommand: string,
+        commandArgs?: Array<string>,
+    ) {
+        await withConfig(target.config || {}, async () => {
+            const env: Hash = {};
+            merge(env, cloneDeep(process.env), cloneDeep(config.env));
+            const context = {
+                spec,
+                conf: config,
+                target,
+            };
+            // beforeEachTarget hook
+            if (spec.hooks.beforeEachTarget) {
+                log.info('Running beforeEachTarget hook');
+                await Runner.runCommands(context, spec.hooks.beforeEachTarget);
+            }
+            if (scriptOrCommand === '--conf') {
+                console.log(config);
+            } else if (Run.isScript(spec, scriptOrCommand)) {
+                await Runner.runScript(context, scriptOrCommand);
+            } else {
+                const command = {
+                    command: scriptOrCommand,
+                    args: commandArgs,
+                };
+                await Runner.runCommand(context, command);
+            }
+            // afterEachTarget hook
+            if (spec.hooks.afterEachTarget) {
+                log.info('Running afterEachTarget hook');
+                await Runner.runCommands(context, spec.hooks.afterEachTarget);
+            }
+        });
+    }
+
+    /**
+     * TODO
+     *
+     * @param spec
+     * @param specPath
+     * @private
+     */
     private static getTargets(spec: ISpec, specPath: string): string[] {
         const parts = specPath.split(SUBPROJECT_HIERARCHICAL_DELIMITER);
         const pattern = parts.slice(-1)[0];
@@ -173,6 +254,13 @@ export class Run {
         return targets;
     }
 
+    /**
+     * TODO
+     *
+     * @param spec
+     * @param scriptOrCommand
+     * @private
+     */
     private static isScript(spec: ISpec, scriptOrCommand: string): boolean {
         return !!spec.scripts && scriptOrCommand in spec.scripts;
     }

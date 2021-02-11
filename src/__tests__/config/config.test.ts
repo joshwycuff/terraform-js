@@ -3,7 +3,7 @@ import { config, pushConfig, popConfig, updateConfig, CONFIG_STACK } from '../..
 
 describe('config', () => {
     describe('pushConfig', () => {
-        it('should not affect config for empty input', () => {
+        it('should not affect conf for empty input', () => {
             const configStackSize = CONFIG_STACK.length;
             const clone = cloneDeep(config);
             pushConfig({});
@@ -24,7 +24,7 @@ describe('config', () => {
         });
     });
     describe('popConfig', () => {
-        it('should pop a layer from the config merge-stack', () => {
+        it('should pop a layer from the conf merge-stack', () => {
             const configStackSize = CONFIG_STACK.length;
             pushConfig({ popConfigTest: 'qwer' });
             expect(config.popConfigTest).toEqual('qwer');
@@ -35,7 +35,7 @@ describe('config', () => {
         });
     });
     describe('updateConfig', () => {
-        it('should update config without adding a layer to the stack', () => {
+        it('should update conf without adding a layer to the stack', () => {
             const configStackSize = CONFIG_STACK.length;
             updateConfig({ updateConfigTest: 'asdf' });
             expect(config.updateConfigTest).toEqual('asdf');

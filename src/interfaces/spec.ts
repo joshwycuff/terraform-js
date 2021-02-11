@@ -21,10 +21,20 @@ export type ICommand = string | _ICommand | _IFunction;
 type ITargetGroups = Hash<Array<string>>;
 
 interface IHooks {
-    setup?: Array<ICommand>;
-    'pre-apply'?: Array<ICommand>;
-    'pre-destroy'?: Array<ICommand>;
-    teardown?: Array<ICommand>;
+    beforeEachSubproject?: Array<ICommand>;
+    beforeEachTarget?: Array<ICommand>;
+    beforeEachScript?: Array<ICommand>;
+    beforeEachCommand?: Array<ICommand>;
+    beforeEachTerraform?: Array<ICommand>;
+    beforeEachTerraformApply?: Array<ICommand>;
+    beforeEachTerraformDestroy?: Array<ICommand>;
+    afterEachTerraformDestroy?: Array<ICommand>;
+    afterEachTerraformApply?: Array<ICommand>;
+    afterEachTerraform?: Array<ICommand>;
+    afterEachCommand?: Array<ICommand>;
+    afterEachScript?: Array<ICommand>;
+    afterEachTarget?: Array<ICommand>;
+    afterEachSubproject?: Array<ICommand>;
 }
 
 type IModules = Hash<any>;

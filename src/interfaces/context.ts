@@ -5,7 +5,7 @@ import { Terraform } from '../terraform/terraform';
 
 export interface IContext extends Hash<any> {
     tf?: Terraform;
-    config: IConfig;
+    conf: IConfig;
     spec: ISpec;
     target?: ITarget;
 }

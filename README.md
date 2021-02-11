@@ -16,3 +16,21 @@ Using yarn:
 `yarn add @joshwycuff/terrascript`
 
 ## Usage
+
+#### Targets
+
+#### Config
+
+#### Scripts
+
+#### Hooks
+
+#### Modules
+
+#### Aliasing
+
+#### Templating
+
+#### Subprojects
+
+#### Inheritance

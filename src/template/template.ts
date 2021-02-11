@@ -23,7 +23,7 @@ export function expandTemplate(context: IContext, str: string): string {
     if (containsTemplate(str)) {
         // make some string templating more concise
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { spec, config, target } = context;
+        const { spec, conf, target } = context;
         // templating
         const match = TEMPLATE_REGEX.exec(str);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

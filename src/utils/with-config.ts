@@ -2,7 +2,7 @@ import { IConfig } from '../interfaces/config';
 import { popConfig, pushConfig } from '../config/config';
 
 /**
- * Context function to push config before running given function and pop config after
+ * Context function to push conf before running given function and pop conf after
  *
  * @param {IConfig} conf - The configuration to push.
  * @param {() => T} func - A function to run which requires no inputs.
