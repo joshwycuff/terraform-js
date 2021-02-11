@@ -1,3 +1,10 @@
+## [0.5.4](https://github.com/joshwycuff/terrascript/compare/v0.5.3...v0.5.4) (2021-02-11)
+
+
+### Bug Fixes
+
+* some spec compile bugs ([340fe94](https://github.com/joshwycuff/terrascript/commit/340fe9431561e29a7d99563210a066bc9278fa59))
+
 ## [0.5.3](https://github.com/joshwycuff/terrascript/compare/v0.5.2...v0.5.3) (2021-02-10)
 
 
