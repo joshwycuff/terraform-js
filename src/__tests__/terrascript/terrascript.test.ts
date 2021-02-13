@@ -238,6 +238,24 @@ describe('terrascript', () => {
             await runTerrascript('dev', 'apply', ['-auto-approve']);
             await expectFileContent('default.txt', 'asdf');
         });
+        test('templating non-existent property', async () => {
+            const spec = {
+                config: {
+                    tfVars: {
+                        content: '{{ spec.nope }}',
+                    },
+                },
+                targets: {
+                    dev: {},
+                },
+            };
+            await writeYaml(TERRASCRIPT_YML, spec);
+            await writeJson(MAIN_TF_JSON, DEFAULT_MAIN);
+            await runTerrascript('dev', 'init', []);
+            await expect(async () => {
+                await runTerrascript('dev', 'apply', []);
+            }).rejects.toThrowError();
+        });
         test('module function', async () => {
             const spec = {
                 modules: {

@@ -1,4 +1,6 @@
+import exp from 'constants';
 import { IContext } from '../interfaces/context';
+import { log } from '../logging/logging';
 
 export const TEMPLATE_REGEX = /{{([^{}]+)}}/;
 
@@ -30,9 +32,17 @@ export function expandTemplate(context: IContext, str: string): string {
         const template = match![0];
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const expression = match![1];
-        // eslint-disable-next-line no-eval
-        const expansion = eval(expression);
-        return expandTemplate(context, str.replace(template, expansion));
+        try {
+            // eslint-disable-next-line no-eval
+            const expansion = eval(expression);
+            if (expansion === undefined) {
+                throw new Error(`template expression resulted in undefined: ${expression}`);
+            }
+            return expandTemplate(context, str.replace(template, expansion));
+        } catch (error) {
+            log.error(error);
+            throw new Error(`error during evaluation of template: ${expression}`);
+        }
     }
     return str;
 }
