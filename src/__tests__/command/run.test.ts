@@ -78,6 +78,31 @@ describe('run', () => {
         expect(stdout).toEqual('testVar=asdf\n');
     });
 
+    it('should expand environment variables', async () => {
+        const cmd = 'printf';
+        // eslint-disable-next-line no-template-curly-in-string
+        const args = ['$testVar ${testVar}'];
+        const cwd = undefined;
+        const env = { testVar: 'asdf' };
+        const result = await testrun(cmd, args, cwd, env);
+        expect(result).toEqual(0);
+        expect(spy).toHaveBeenCalled();
+        const stdout = spy.mock.calls[0][0];
+        expect(stdout).toEqual('asdf asdf');
+    });
+
+    it('should expand unset environment variables to empty string', async () => {
+        const cmd = 'echo';
+        const args = ['$testVar'];
+        const cwd = undefined;
+        const env = { };
+        const result = await testrun(cmd, args, cwd, env);
+        expect(result).toEqual(0);
+        expect(spy).toHaveBeenCalled();
+        const stdout = spy.mock.calls[0][0];
+        expect(stdout).toEqual('\n');
+    });
+
     it('should reject when error', async () => {
         expect.assertions(1);
         const cmd = 'exit 1';

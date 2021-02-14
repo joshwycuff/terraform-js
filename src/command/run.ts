@@ -1,6 +1,24 @@
 import { spawn, StdioOptions } from 'child_process';
+import exp from 'constants';
 import { ExitCode, Hash } from '../interfaces/types';
 import { log } from '../logging/logging';
+
+/**
+ * @param env
+ * @param arg
+ */
+function expand(env: Hash, arg: string): string {
+    const ENV_VAR = /\${?(\w+)}?/;
+    let expanded = arg;
+    let match;
+    do {
+        match = ENV_VAR.exec(expanded);
+        if (match) {
+            expanded = expanded.replace(match[0], env[match[1]] || '');
+        }
+    } while (match);
+    return expanded;
+}
 
 /**
  * Execute a command in a subprocess and return exit code.
@@ -29,7 +47,9 @@ export async function run(
         }),
     );
     return new Promise((resolve, reject) => {
-        const child = spawn(command, args, { cwd, env, stdio });
+        // workaround to expand environment variables
+        const expandedArgs = args.map((a) => expand(env || (process.env as Hash), a));
+        const child = spawn(command, expandedArgs, { cwd, env, stdio });
         child.on('exit', (code) => {
             if (code === 0) {
                 resolve(code);
