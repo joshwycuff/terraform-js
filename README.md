@@ -651,6 +651,7 @@ terrascript "*" apply
 
 <details>
 <summary>Just so you know, the terraform commands that were automated with that last command look like this...</summary>
+
 ```shell
 cd ./infrastructure/subproject1/subproject1a/
 terraform init -reconfigure \
