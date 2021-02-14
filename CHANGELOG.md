@@ -1,3 +1,11 @@
+## [0.6.1](https://github.com/joshwycuff/terrascript/compare/v0.6.0...v0.6.1) (2021-02-14)
+
+
+### Bug Fixes
+
+* add workaround to expand env variables for run ([49319fd](https://github.com/joshwycuff/terrascript/commit/49319fd9e11ce33abfa4f01966aba93ea6018764))
+* throw error for undefined template expression ([fbe1ba7](https://github.com/joshwycuff/terrascript/commit/fbe1ba7ea35c3e971d4e5a83c3d51409995e1de0))
+
 # [0.6.0](https://github.com/joshwycuff/terrascript/compare/v0.5.4...v0.6.0) (2021-02-11)
 
 
