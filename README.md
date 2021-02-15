@@ -5,6 +5,7 @@ JavsScript/TypeScript wrapper for running Terraform commands in NodeJS
 [![npm version](https://badge.fury.io/js/%40joshwycuff%2Fterrascript.svg)](https://badge.fury.io/js/%40joshwycuff%2Fterrascript)
 [![Actions Status](https://github.com/joshwycuff/terrascript/workflows/release/badge.svg)](https://github.com/joshwycuff/terrascript/actions)
 
+- [What is Terrascript?](#what-is-terrascript)
 - [Installation](#installation)
 - [Usage](#usage)
   * [CLI](#cli)
@@ -14,13 +15,19 @@ JavsScript/TypeScript wrapper for running Terraform commands in NodeJS
     + [Groups](#groups) 
     + [Config](#config) 
     + [Aliasing](#aliasing) 
-    + [Scripts](#scripts) 
-    + [Hooks](#hooks) 
-    + [Templating](#templating) 
+    + [Scripts](#scripts)
+    + [Templating](#template-expressions)
+    + [Hooks](#hooks)
     + [Modules](#modules) 
     + [Special Terraform support](#special-terraform-support) 
     + [Subprojects](#subprojects) 
     + [Inheritance](#inheritance)
+
+## What is Terrascript?
+
+There are two parts to Terrascript. One is a JavaScript/TypeScript wrapper for running Terraform
+commands in NodeJS. The other is a CLI which allows you to structure, organize, and automate
+Terraform configurations and tasks.
 
 ## Installation
 
@@ -31,6 +38,10 @@ Using npm:
 Using yarn:
 
 `yarn add @joshwycuff/terrascript`
+
+I also recommend using
+[@jahed/terraform](https://www.npmjs.com/package/@jahed/terraform?activeTab=readme)
+along with Terrascript.
 
 ## Usage
 
@@ -64,7 +75,7 @@ definitions:
 ```
 
 Note that nothing is stopping you from storing additional information in other keys. This can even
-be useful when using template expressions.
+be useful when using [template expressions](#template-expressions).
 
 ##### Name
 
@@ -161,7 +172,7 @@ terrascript dev echo '$A_VAR'
 ##### Aliasing
 
 If you have something in your config file that needs to be in several places, you can use
-aliasing.
+aliasing. Alias definitions are found under the definitions key and must begin with "$".
 
 ```yaml
 config:
@@ -178,6 +189,11 @@ definitions:
 terrascript dev echo '$VAR1'
 # stuffidontwanttorepeat
 ```
+
+Aliasing is a simple way to make DRY config files. However, it is limited. Subprojects cannot "see"
+alias definitions of parent projects. You also can't combine or perform any logic with aliases. For
+anything that aliasing can't accomplish, you probably need to go with
+[template expressions](#template-expressions).
 
 ##### Scripts
 
@@ -196,6 +212,55 @@ scripts:
 terrascript dev things
 # thing 1
 # thing 2
+```
+
+##### Template Expressions
+
+You can use template expressions to access various available variables within the current context
+or even to run arbitrary Javascript code.
+
+The main available variable is called `context` which looks like this:
+```typescript
+export interface IContext extends Hash<any> {
+    tf?: Terraform;
+    conf: IConfig;
+    spec: ISpec;
+    target?: ITarget;
+}
+```
+
+`tf` is an instance of Terraform. This is more useful in [module functions](#modules) than templates.
+
+`conf` is the current config under which the given command/hook/script is being run.
+
+`spec` is the yaml configuration (or specification) under which the given command/hook/script
+is being run.
+
+`target` is the current target.
+
+`tf` and `target` may or may not be available depending on if you're accessing the context in a hook
+and which hook it is. They're always available in a normal command or script, though.
+
+Also, for convenience, `conf`, `spec`, and `target` are made available in templates.
+
+Template expressions are evaluated dynamically at runtime and can access [inherited values](#inheritance).
+
+```yaml
+name: project
+target:
+  dev:
+scripts:
+  things:
+    - echo {{ spec.name }}
+    - echo {{ target.name }}
+    - echo {{ 1 + 1 }}
+```
+
+```shell
+terrascript dev things
+# project
+# dev
+# 2
 ```
 
 ##### Hooks
@@ -221,73 +286,18 @@ Here's an example:
 ```yaml
 targets:
   dev:
-    config:
-      env:
-        TARGET: dev
   prod:
-    config:
-      env:
-        TARGET: dev
 hooks:
   beforeEachTarget:
     - echo do a thing beforeEachTarget
 ```
 
 ```shell
-terrascript "*" echo '$TARGET'
+terrascript "*" echo '{{ target.name }}'
 # do a thing beforeEachTarget
 # dev
 # do a thing beforeEachTarget
 # prod
-```
-
-##### Templating
-
-You can use template expressions to access various available variables within the current context
-or even to run arbitrary Javascript code.
-
-The main available variable is called `context` which looks like this:
-```typescript
-export interface IContext extends Hash<any> {
-    tf?: Terraform;
-    conf: IConfig;
-    spec: ISpec;
-    target?: ITarget;
-}
-```
-
-`tf` is an instance of Terraform. This is more useful in module functions than templates.
-
-`conf` is the current config under which the given command/hook/script is being run.
-
-`spec` is the yaml configuration (or specification) under which the given command/hook/script
-is being run.
-
-`target` is the current target.
-
-`tf` and `target` may or may not be available depending on if you're accessing the context in a hook
-and which hook it is. They're always available in a normal command or script, though.
-
-Also, for convenience, `conf`, `spec`, and `target` are made available in templates.
-
-Template expressions are evaluated dynamically at runtime.
-
-```yaml
-name: project
-target:
-  dev:
-scripts:
-  things:
-    - echo {{ spec.name }}
-    - echo {{ target.name }}
-    - echo {{ 1 + 1 }}
-```
-
-```shell
-terrascript dev things
-# project
-# dev
-# 2
 ```
 
 ##### Modules
@@ -547,7 +557,9 @@ Also note that glob patterns apply to both subprojects and targets.
 
 Subprojects inherit yaml configuration from parent projects. This applies to every supported key
 with the notable exception of `targets`. This means that `backendConfig` (and pretty much anything
-else) set in the top-level terrascript.yml file is also applied to lower-level subprojects.
+else) set in the top-level terrascript.yml file is also found in lower-level subprojects at runtime.
+Values in subprojects override inherited values (just as target-level values will override
+everything else).
 
 Let's make a more complicated project.
 
@@ -626,7 +638,7 @@ targets:
 ```
 
 You can see that this project has a more nested structure where different subprojects have different
-configuration needs but there are common elements that can be specified once and passed down
+configuration needs but there are common elements that can be templated and passed down
 through inheritance.
 
 Now, let's say you want to run a command for just subproject1a:
