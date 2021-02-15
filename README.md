@@ -3,7 +3,7 @@
 JavsScript/TypeScript wrapper for running Terraform commands in NodeJS
 
 [![npm version](https://badge.fury.io/js/%40joshwycuff%2Fterrascript.svg)](https://badge.fury.io/js/%40joshwycuff%2Fterrascript)
-[![Actions Status](https://github.com/joshwycuff/terrascript/workflows/release/badge.svg)](https://github.com/joshwycuff/terrascript/actions)
+[![Actions Status](https://github.com/joshwycuff/terrascript/workflows/build/badge.svg)](https://github.com/joshwycuff/terrascript/actions)
 
 - [What is Terrascript?](#what-is-terrascript)
 - [Installation](#installation)
@@ -556,10 +556,10 @@ Also note that glob patterns apply to both subprojects and targets.
 ##### Inheritance
 
 Subprojects inherit yaml configuration from parent projects. This applies to every supported key
-with the notable exception of `targets`. This means that `backendConfig` (and pretty much anything
-else) set in the top-level terrascript.yml file is also found in lower-level subprojects at runtime.
-Values in subprojects override inherited values (just as target-level values will override
-everything else).
+with the notable exceptions of `subprojects` and `targets`. This means that `backendConfig` (and
+pretty much anything else) set in the top-level terrascript.yml file is also found in lower-level
+subprojects at runtime. Values in subprojects override inherited values (just as target-level values
+will override everything else).
 
 Let's make a more complicated project.
 
