@@ -1,3 +1,10 @@
+## [0.6.3](https://github.com/joshwycuff/terrascript/compare/v0.6.2...v0.6.3) (2021-02-15)
+
+
+### Bug Fixes
+
+* add package.json keywords ([994ab15](https://github.com/joshwycuff/terrascript/commit/994ab15c84822bc6673f64aa7bdc89a091a318f6))
+
 ## [0.6.2](https://github.com/joshwycuff/terrascript/compare/v0.6.1...v0.6.2) (2021-02-15)
 
 
