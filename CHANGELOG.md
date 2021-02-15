@@ -1,3 +1,10 @@
+## [0.6.2](https://github.com/joshwycuff/terrascript/compare/v0.6.1...v0.6.2) (2021-02-15)
+
+
+### Bug Fixes
+
+* update readme ([c555322](https://github.com/joshwycuff/terrascript/commit/c5553222f87740035b8e1d6b3abdd22cdc7eb989))
+
 ## [0.6.1](https://github.com/joshwycuff/terrascript/compare/v0.6.0...v0.6.1) (2021-02-14)
 
 
