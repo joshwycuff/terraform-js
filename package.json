@@ -115,5 +115,14 @@
   },
   "bin": {
     "terrascript": "./dist/cli/cli.js"
-  }
+  },
+  "keywords": [
+    "terraform",
+    "hashicorp",
+    "infrastructure",
+    "automation",
+    "wrapper",
+    "configuration",
+    "cli"
+  ]
 }
