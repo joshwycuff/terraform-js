@@ -1,5 +1,5 @@
 import { Run } from '../../terrascript/run';
-import { buildSpecs, SPEC, SPEC_STACK } from '../../spec/specs';
+import { buildSpecs, SPEC } from '../../spec/specs';
 import { curryContext, withContexts } from '../../utils/withs';
 import { withSpec } from '../../utils/with-spec';
 

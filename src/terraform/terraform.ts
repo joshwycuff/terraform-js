@@ -722,6 +722,13 @@ export class Terraform {
     // endregion
 
     // region Additional functionality
+
+    /**
+     * Check if a command string is a terraform subcommand
+     *
+     * @param {string} cmd - A command string
+     * @returns {boolean} True if given command string is a terraform subcommand, otherwise false
+     */
     static isSubcommand(cmd: string): boolean {
         return this.subcommands.includes(cmd);
     }

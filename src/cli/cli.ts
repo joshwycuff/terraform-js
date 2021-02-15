@@ -3,7 +3,6 @@
 import { runTerrascript } from './commands/terrascript';
 import { log } from '../logging/logging';
 import { init } from './commands/init';
-import { buildSpecs, SPEC, SPEC_STACK } from '../spec/specs';
 
 /**
  *

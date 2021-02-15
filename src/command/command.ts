@@ -91,8 +91,15 @@ export class Command {
         );
     }
 
-    static fromString(commandString: string, options?: CommandOptions): Command {
-        const commandParts = commandString.split(' ');
+    /**
+     * Create a Command instance from a string
+     *
+     * @param {string} str - A command string
+     * @param {CommandOptions} options - Command options to include
+     * @returns {Command} A command instance
+     */
+    static fromString(str: string, options?: CommandOptions): Command {
+        const commandParts = str.split(' ');
         const command = commandParts[0];
         const args = commandParts.slice(1);
         return new Command(command, args, options);

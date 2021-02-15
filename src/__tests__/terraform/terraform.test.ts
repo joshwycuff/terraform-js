@@ -13,16 +13,20 @@ const DEFAULT_MAIN = {
     resource: {
         local_file: {
             file: {
+                // eslint-disable-next-line no-template-curly-in-string
                 filename: '${terraform.workspace}.txt',
+                // eslint-disable-next-line no-template-curly-in-string
                 content: '${var.content}',
             },
         },
     },
     output: {
         filename: {
+            // eslint-disable-next-line no-template-curly-in-string
             value: '${local_file.file.filename}',
         },
         content: {
+            // eslint-disable-next-line no-template-curly-in-string
             value: '${local_file.file.content}',
         },
     },

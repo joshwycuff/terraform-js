@@ -1,5 +1,4 @@
 import { spawn, StdioOptions } from 'child_process';
-import exp from 'constants';
 import { ExitCode, Hash } from '../interfaces/types';
 import { log } from '../logging/logging';
 

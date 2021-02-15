@@ -27,7 +27,7 @@ export class CommandCommand implements _ICommandCommand {
     // eslint-disable-next-line require-jsdoc
     constructor(command: CommandCommandLike) {
         if (typeof command === 'string') {
-            const iCommandCommand = this.deconstructString(command);
+            const iCommandCommand = CommandCommand.deconstructString(command);
             this.path = iCommandCommand.path;
             this.name = iCommandCommand.name;
         } else {
@@ -50,8 +50,14 @@ export class CommandCommand implements _ICommandCommand {
         return path.join(this.path, this.name);
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    private deconstructString(str: string): _ICommandCommand {
+    /**
+     * Separate command string into path and name
+     *
+     * @param {string} str - Input command string
+     * @returns {_ICommandCommand} command interface
+     * @private
+     */
+    private static deconstructString(str: string): _ICommandCommand {
         return {
             path: path.dirname(str),
             name: path.basename(str),

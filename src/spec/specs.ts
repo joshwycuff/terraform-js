@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import _, { cloneDeep, mergeWith } from 'lodash';
+import { cloneDeep, mergeWith } from 'lodash';
 
 import { TERRASCRIPT_YML } from '../constants';
 import { searchUp } from '../utils/search-up';
@@ -11,17 +11,17 @@ import { inDir } from '../utils/in-dir';
 import { MergeStack } from '../utils/merge-stack';
 import { log } from '../logging/logging';
 
+// eslint-disable-next-line jsdoc/require-returns
 /**
- * @param objValue
- * @param srcValue
- * @param key
- * @param object
- * @param source
- * @param stack
- * @param obj
- * @param src
+ * A lodash mergeWith customizer which prevents inheritance of subprojects and targets. Also
+ * simplifies inheritance of arrays.
+ *
+ * @param {any} objValue - Value being merged into
+ * @param {any} srcValue - Value to be merged
+ * @param {string} key - The key currently being merged
  */
-function customizer(objValue: any, srcValue: any, key: string, obj: any, src: any): any {
+// eslint-disable-next-line consistent-return,require-jsdoc
+function customizer(objValue: any, srcValue: any, key: string): any {
     if (key === 'subprojects') {
         return srcValue;
     }
@@ -45,6 +45,9 @@ export const SPEC_STACK = new MergeStack<ISpec>(undefined, customizer);
 
 export const SPEC = () => SPEC_STACK.peek();
 
+/**
+ * Class containing logic to compile terrascript yaml files in a project
+ */
 export class Specs {
     private cwd: string;
 
@@ -54,6 +57,11 @@ export class Specs {
 
     rootPath: ISpec[];
 
+    /**
+     * Create a new terrascript specs project instance
+     *
+     * @param {string} cwd - Current working directory
+     */
     constructor(cwd?: string) {
         this.cwd = cwd || process.cwd();
         this.nodes = {};
@@ -61,12 +69,23 @@ export class Specs {
         this.main = {} as ISpec;
     }
 
+    /**
+     * Build all specs in current project
+     */
     async build() {
         this.main = await this.compileSpec(this.cwd);
         this.rootPath = await this.getRootPath(this.cwd);
     }
 
-    private async compileSpec(dir: string, deep = true) {
+    /**
+     * Compile a spec
+     *
+     * @param {string} dir - Directory containing a terrascript yaml file
+     * @param {boolean} deep - Flag to also compile subproject specs
+     * @returns {Promise<ISpec>} - Compiled spec
+     * @private
+     */
+    private async compileSpec(dir: string, deep = true): Promise<ISpec> {
         const ymlfile = path.join(process.cwd(), dir, TERRASCRIPT_YML);
         log.debug(`Compiling ${ymlfile}`);
         return inDir(dir, async () => {
@@ -91,27 +110,48 @@ export class Specs {
         });
     }
 
-    private async compile(spec: ISpec, subspec: any, section: string) {
-        if (subspec === null) {
+    /**
+     * Compile part of a spec. Determine what type of object it is and pass it to the appropriate
+     * compile method.
+     *
+     * @param {ISpec} spec - The parent spec
+     * @param {any} subsection - Subsection of a spec
+     * @param {string} topLevelSectionKey - The spec key the part is under
+     * @returns {any} Compiled subsection
+     * @private
+     */
+    private async compile(spec: ISpec, subsection: any, topLevelSectionKey: string): Promise<any> {
+        if (subsection === null) {
             return {};
         }
-        if (typeof subspec === 'string') {
-            return this.compileString(spec, subspec, section);
+        if (typeof subsection === 'string') {
+            return this.compileString(spec, subsection, topLevelSectionKey);
         }
-        if (Array.isArray(subspec)) {
-            return this.compileArray(spec, subspec, section);
+        if (Array.isArray(subsection)) {
+            return this.compileArray(spec, subsection, topLevelSectionKey);
         }
-        if (typeof subspec === 'object') {
-            return this.compileObject(spec, subspec, section);
+        if (typeof subsection === 'object') {
+            return this.compileObject(spec, subsection, topLevelSectionKey);
         }
+        throw new Error('Unhandled spec compilation type');
     }
 
+    /**
+     * Compile a string which may be a subproject spec, a JavaScript module, an alias, or a plain
+     * string.
+     *
+     * @param {ISpec} spec - The parent spec
+     * @param {string} str - The string to be compiled
+     * @param {string} section - The spec key the string is under
+     * @returns {any} A subproject spec, JavaScript module, or string
+     * @private
+     */
     private async compileString(spec: ISpec, str: string, section: string): Promise<any> {
         if (section === 'subprojects') {
             return this.compileSpec(str);
         }
         if (section === 'modules') {
-            return this.compileModule(str);
+            return Specs.compileModule(str);
         }
         if (str.slice(0, 1) === '$') {
             if (!!spec.definitions && str in spec.definitions) {
@@ -122,11 +162,29 @@ export class Specs {
         return str;
     }
 
+    /**
+     * Compile a spec array
+     *
+     * @param {ISpec} spec - The parent spec
+     * @param {any[]} arr - The array to be compiled
+     * @param {string} section - The spec key the array is under
+     * @returns {Promise<any[]>} - Compiled array
+     * @private
+     */
     private async compileArray(spec: ISpec, arr: any[], section: string): Promise<any[]> {
         const clone = cloneDeep(arr);
         return Promise.all(clone.map((x) => this.compile(spec, x, section)));
     }
 
+    /**
+     * Compile a spec object
+     *
+     * @param {ISpec} spec - The parent spec
+     * @param {Hash<any>} obj - The object to be compiled
+     * @param {string} section - The spec key the object is under
+     * @returns {Promise<Hash<any>>} - Compiled object
+     * @private
+     */
     private async compileObject(spec: ISpec, obj: Hash<any>, section: string): Promise<Hash<any>> {
         const clone = cloneDeep(obj);
         for (const key of Object.keys(clone)) {
@@ -135,11 +193,25 @@ export class Specs {
         return clone;
     }
 
-    private async compileModule(modulePath: string) {
+    // eslint-disable-next-line jsdoc/require-returns
+    /**
+     * Require the given JavaScript module
+     *
+     * @param {string} modulePath - Relative path to JavaScript module
+     * @private
+     */
+    private static async compileModule(modulePath: string) {
         // eslint-disable-next-line global-require,import/no-dynamic-require
         return require(path.join(process.cwd(), modulePath));
     }
 
+    /**
+     * Find all parent terrascript specs in the current project
+     *
+     * @param {string} cwd - Current working directory
+     * @returns {Promise<ISpec[]>} - Array of parent specs up to project root
+     * @private
+     */
     private async getRootPath(cwd: string): Promise<ISpec[]> {
         const dirs: string[] = [];
         let dir = cwd;
@@ -153,6 +225,13 @@ export class Specs {
         return Promise.all(dirs.map((d) => this.compileSpec(d, false)));
     }
 
+    /**
+     * Load the terrascript yaml file from the given directory
+     *
+     * @param {string} inputDir - The directory to load the terrascript yaml file from
+     * @returns {Promise<ISpec>} - The terrascript spec if the yaml existed and was valid
+     * @private
+     */
     private static async loadSpecFromDir(inputDir?: string): Promise<ISpec> {
         const dir = inputDir || process.cwd();
         const filesAndFolders = await fs.readdirSync(dir);
@@ -163,6 +242,13 @@ export class Specs {
         throw new Error(`No ${TERRASCRIPT_YML} found in directory ${dir}`);
     }
 
+    /**
+     * Load spec from yaml file
+     *
+     * @param {string} filepath - A yaml filepath
+     * @returns {ISpec} A spec instance based on the given yaml file
+     * @private
+     */
     private static async loadSpec(filepath: string): Promise<ISpec> {
         const spec = (yaml.load(fs.readFileSync(filepath, 'utf-8')) || {}) as _ISpec;
         spec.filepath = filepath;
@@ -170,6 +256,13 @@ export class Specs {
         return Specs.fillSpec(spec);
     }
 
+    /**
+     * Fill spec with any missing keys
+     *
+     * @param {_ISpec} unfilledSpec - Input spec which may be missing keys
+     * @returns {ISpec} Filled spec which contains all supported keys
+     * @private
+     */
     private static fillSpec(unfilledSpec: _ISpec): ISpec {
         const spec = cloneDeep(unfilledSpec);
         if (!spec.name) {
