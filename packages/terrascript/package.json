@@ -1,0 +1,128 @@
+{
+  "name": "@joshwycuff/terrascript",
+  "version": "0.6.3",
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev:terrascript": "cd testing/testInfrastructure && node ../../dist/cli/cli.js",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "commit": "git cz",
+    "check:all": "yarn check:format && yarn check:lint && yarn check:test",
+    "check:format": "prettier --check src/**/*.ts",
+    "check:lint": "eslint src/",
+    "check:test": "yarn test",
+    "fix:all": "yarn fix:format && yarn fix:lint",
+    "fix:format": "prettier --write src/**/*.ts",
+    "fix:lint": "eslint --fix src/",
+    "test": "jest --no-watch --runInBand src/__tests__/",
+    "prepublishOnly": "yarn build",
+    "local:publish": "yalc publish --push"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "yarn check:format",
+      "pre-push": "yarn check:all"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release/github",
+    "@semantic-release/npm",
+    "@semantic-release/git"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      {
+        "path": "@semantic-release/git",
+        "assets": [
+          "package.json",
+          "yarn.lock",
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} \n\n${nextRelease.notes}"
+      }
+    ]
+  },
+  "files": [
+    "dist/"
+  ],
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@jahed/terraform": "^0.12",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/npm": "^7.0.6",
+    "@semantic-release/release-notes-generator": "^9.0.1",
+    "@types/fs-extra": "^9.0.6",
+    "@types/glob": "^7.1.3",
+    "@types/graphviz": "^0.0.32",
+    "@types/jest": "^26.0.14",
+    "@types/js-yaml": "^4.0.0",
+    "@types/lodash": "^4.14.168",
+    "@types/micromatch": "^4.0.1",
+    "@types/node": "^14.14.22",
+    "@typescript-eslint/eslint-plugin": "^4.2.0",
+    "@typescript-eslint/parser": "^4.3.0",
+    "commitizen": "^4.2.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.10.0",
+    "eslint-config-airbnb-typescript": "^11.0.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jsdoc": "^30.6.3",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-react": "^7.21.3",
+    "eslint-plugin-react-hooks": "^4.0.8",
+    "eslint-plugin-unicorn": "^22.0.0",
+    "husky": "^4.3.0",
+    "jest": "^26.4.2",
+    "prettier": "^2.1.2",
+    "ts-jest": "^26.4.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "fs-extra": "^9.1.0",
+    "glob": "^7.1.6",
+    "js-yaml": "^4.0.0",
+    "lodash": "^4.17.20",
+    "maybe-optional": "^0.4.0",
+    "micromatch": "^4.0.2",
+    "winston": "^3.3.3"
+  },
+  "bin": {
+    "terrascript": "./dist/cli/cli.js"
+  },
+  "keywords": [
+    "terraform",
+    "hashicorp",
+    "infrastructure",
+    "automation",
+    "wrapper",
+    "configuration",
+    "cli"
+  ]
+}
