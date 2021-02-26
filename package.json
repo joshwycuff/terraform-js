@@ -1,0 +1,12 @@
+{
+  "name": "terrascript",
+  "version": "0.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:/joshwycuff/terrascript.git",
+  "author": "Josh Wycuff <Joshua.Wycuff@turner.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "lerna": "^3.22.1"
+  }
+}
