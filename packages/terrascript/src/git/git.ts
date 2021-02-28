@@ -1,4 +1,4 @@
-import { execute } from '../command/command';
+import { execute } from '../../../command/src/command/command';
 
 /**
  *

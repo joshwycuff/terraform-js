@@ -1,10 +1,10 @@
 import { cloneDeep, merge } from 'lodash';
-import { CommandOptions, run, execute, Command } from '../command/command';
-import { CommandCommand as TerraformCommand, CommandCommandLike } from '../command/command-command';
+import { CommandOptions, run, execute, Command } from '../../../command/src/command/command';
+import { CommandCommand as TerraformCommand, CommandCommandLike } from '../../../command/src/command/command-command';
 import {
     CommandArguments as TerraformArguments,
     CommandArgumentsLike,
-} from '../command/command-arguments';
+} from '../../../command/src/command/command-arguments';
 import { TF_INPUT, TF_LOG } from './types';
 import { Hash } from '../interfaces/types';
 import { config } from '../config/config';

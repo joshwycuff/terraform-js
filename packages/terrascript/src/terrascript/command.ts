@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Command, CommandOptions } from '../command/command';
+import { Command, CommandOptions } from '../../../command/src/command/command';
 import { IContext } from '../interfaces/context';
 import { expandTemplate } from '../template/template';
 import { ExitCode, Hash } from '../interfaces/types';

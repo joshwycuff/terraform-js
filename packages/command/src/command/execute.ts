@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
-import { Hash } from '../interfaces/types';
-import { log } from '../logging/logging';
+import { Hash } from '@joshwycuff/types';
+import { log } from './logging';
 
 /**
  * Execute a command in a subprocess and return the stdout.
@@ -11,14 +11,17 @@ import { log } from '../logging/logging';
  * @returns {Promise<string>} The stdout of the subprocess.
  */
 export async function execute(command: string, cwd?: string, env?: Hash): Promise<string> {
-    return new Promise((resolve, reject) => {
-        exec(command, { cwd, env }, (error, stdout, stderr) => {
-            if (error === null) {
-                resolve(stdout);
-            } else {
-                log.error(stderr);
-                reject(stderr);
-            }
-        });
+  return new Promise((resolve, reject) => {
+    exec(command, {
+      cwd,
+      env,
+    }, (error, stdout, stderr) => {
+      if (error === null) {
+        resolve(stdout);
+      } else {
+        log.error(stderr);
+        reject(stderr);
+      }
     });
+  });
 }

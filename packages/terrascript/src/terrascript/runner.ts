@@ -4,7 +4,7 @@ import { Terraform } from '../terraform/terraform';
 import { log } from '../logging/logging';
 import { IContext } from '../interfaces/context';
 import { ExitCode, Hash } from '../interfaces/types';
-import { Command } from '../command/command';
+import { Command } from '../../../command/src/command/command';
 import { Expand } from './command';
 import { inDir } from '../utils/in-dir';
 
