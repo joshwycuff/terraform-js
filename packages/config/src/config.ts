@@ -2,11 +2,11 @@ import fs from 'fs';
 import _ from 'lodash';
 
 import { JSONObject } from '@joshwycuff/types';
+import { MergeStack } from '@joshwycuff/merge-stack';
 import { ArgvConfig } from './stores/argv';
 import { EnvConfig } from './stores/env';
 import { updateConfigFromFile } from './stores/file';
 import { updateConfigFromObject } from './stores/object';
-import { ConfigStack } from './config-stack';
 
 export class Config<T extends JSONObject = JSONObject> {
   private props: T;
@@ -57,8 +57,8 @@ export class Config<T extends JSONObject = JSONObject> {
     return this;
   }
 
-  asStack(): ConfigStack<T> {
-    return new ConfigStack<T>(this.props, this.customizer);
+  asStack(): MergeStack<T> {
+    return new MergeStack<T>(this.props, this.customizer);
   }
 }
 
