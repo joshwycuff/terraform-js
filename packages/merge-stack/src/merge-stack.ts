@@ -7,7 +7,9 @@ import { cloneDeep, mergeWith, MergeWithCustomizer } from 'lodash';
  * This implementation is used to override configurations while being able to remove the top layer
  * of configuration if desired.
  */
-export class ConfigStack<T> {
+export class MergeStack<T> {
+  private onChanges: Array<() => void>;
+
   private stack: Array<T>;
 
   private customizer?: MergeWithCustomizer;
@@ -19,6 +21,7 @@ export class ConfigStack<T> {
    * @param {MergeWithCustomizer} customizer
    */
   constructor(obj?: T, customizer?: MergeWithCustomizer) {
+    this.onChanges = [];
     this.stack = [];
     this.customizer = customizer;
     if (obj !== undefined) {
@@ -49,6 +52,7 @@ export class ConfigStack<T> {
     } else {
       this.stack.push(obj);
     }
+    this.runOnChanges();
   }
 
   /**
@@ -61,7 +65,9 @@ export class ConfigStack<T> {
     if (this.stack.length === 0) {
       throw new Error('Stack is empty.');
     }
-    return this.stack.pop() as T;
+    const popped = this.stack.pop() as T;
+    this.runOnChanges();
+    return popped;
   }
 
   /**
@@ -72,5 +78,15 @@ export class ConfigStack<T> {
    */
   peek(): T {
     return this.stack.slice(-1)[0];
+  }
+
+  onChange(func: () => void) {
+    this.onChanges.push(func);
+  }
+
+  private runOnChanges() {
+    for (const func of this.onChanges) {
+      func();
+    }
   }
 }
