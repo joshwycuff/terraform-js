@@ -1,6 +1,7 @@
 import fs from 'fs';
 import yaml from 'js-yaml';
 
+import { JSONObject } from '@joshwycuff/types';
 import { conf } from '..';
 import { ArgvConfig } from '../stores/argv';
 import { EnvConfig } from '../stores/env';
@@ -131,7 +132,7 @@ describe('config', () => {
     });
     describe('object', () => {
       it('should merge object', () => {
-        const defaults = { a: 1, b: { c: 2 } };
+        const defaults: JSONObject = { a: 1, b: { c: 2 } };
         const obj = { b: { c: 3 } };
         const config = conf(defaults).object(obj).peek();
         expect(config).toEqual({ a: 1, b: { c: 3 } });
@@ -143,10 +144,28 @@ describe('config', () => {
             return value + srcValue;
           }
         };
-        const defaults = { a: 1, b: { c: 2 } };
+        const defaults: JSONObject = { a: 1, b: { c: 2 } };
         const obj = { b: { c: 3 } };
         const config = conf(defaults, '', customizer).object(obj).peek();
         expect(config).toEqual({ a: 1, b: { c: 5 } });
+      });
+      it('should merge object namespace', () => {
+        const defaults: JSONObject = { a: 1, b: { c: 2 } };
+        const obj = { asdf: { b: { c: 3 } } };
+        const config = conf(defaults, 'asdf').object(obj).peek();
+        expect(config).toEqual({ a: 1, b: { c: 3 } });
+      });
+      it('should merge with namespace overriding', () => {
+        const defaults: JSONObject = { a: 1, b: { c: 2 }, d: 3 };
+        const obj = { d: 4, asdf: { b: { c: 5 }, d: 6 } };
+        const config = conf(defaults, 'asdf').object(obj).peek();
+        expect(config).toEqual({ a: 1, b: { c: 5 }, d: 6 });
+      });
+      it('should not alter object', () => {
+        const defaults: JSONObject = { a: 1, b: { c: 2 }, d: 3 };
+        const obj = { d: 4, asdf: { b: { c: 5 }, d: 6 } };
+        conf(defaults, 'asdf').object(obj).peek();
+        expect(obj).toEqual({ d: 4, asdf: { b: { c: 5 }, d: 6 } });
       });
     });
     describe('file', () => {
@@ -160,7 +179,7 @@ describe('config', () => {
           await fs.rmSync(testFilepath);
         });
         it('should merge', async () => {
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = conf(defaults).file(testFilepath).peek();
           expect(config).toEqual({ a: 1, b: { c: 3 } });
         });
@@ -171,7 +190,7 @@ describe('config', () => {
               return value + srcValue;
             }
           };
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = conf(defaults, '', customizer).file(testFilepath).peek();
           expect(config).toEqual({ a: 1, b: { c: 5 } });
         });
@@ -185,7 +204,7 @@ describe('config', () => {
           await fs.rmSync(testFilepath);
         });
         it('should merge', async () => {
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = conf(defaults).file(testFilepath);
           await sleep(1);
           expect(config.peek()).toEqual({ a: 1, b: { c: 3 } });
@@ -197,7 +216,7 @@ describe('config', () => {
               return value + srcValue;
             }
           };
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = conf(defaults, '', customizer).file(testFilepath);
           await sleep(1);
           expect(config.peek()).toEqual({ a: 1, b: { c: 5 } });
@@ -212,7 +231,7 @@ describe('config', () => {
           await fs.rmSync(testFilepath);
         });
         it('should merge', async () => {
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = conf(defaults).file(testFilepath);
           await sleep(1);
           expect(config.peek()).toEqual({ a: 1, b: { c: 3 } });
@@ -224,7 +243,7 @@ describe('config', () => {
               return value + srcValue;
             }
           };
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = conf(defaults, '', customizer).file(testFilepath);
           await sleep(1);
           expect(config.peek()).toEqual({ a: 1, b: { c: 5 } });
@@ -239,19 +258,19 @@ describe('config', () => {
           await fs.rmSync(testFilepath);
         });
         it('should merge file that exists', async () => {
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = (await conf(defaults).optionalFileSync(testFilepath)).peek();
           expect(config).toEqual({ a: 1, b: { c: 3 } });
         });
         it('should skip file that does not exist', async () => {
-          const defaults = { a: 1, b: { c: 2 } };
+          const defaults: JSONObject = { a: 1, b: { c: 2 } };
           const config = (await conf(defaults).optionalFileSync('asdfwoeir.yaml')).peek();
           expect(config).toEqual({ a: 1, b: { c: 2 } });
         });
       });
     });
     describe('combining constructions', () => {
-      const defaults = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 };
+      const defaults: JSONObject = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 };
       const testJsonFilepath = 'testCombiningConstructions.json';
       const testYamlFilepath = 'testCombiningConstructions.yaml';
       const testJsFilepath = 'testCombiningConstructions.js';

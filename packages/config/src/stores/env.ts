@@ -1,36 +1,36 @@
 import { Hash, JSONObject, JSONPrimitive, JSONValue } from '@joshwycuff/types';
-import { Utils } from '../utils';
 
 export class EnvConfig {
   /**
    * @param namespace
    * @param config
+   * @param defaults
    */
-  static updateConfigFromEnv(namespace: string, config: JSONObject) {
-    EnvConfig.updateConfig(namespace, config, config);
+  static updateConfigFromEnv(namespace: string, defaults: JSONObject, config: JSONObject) {
+    EnvConfig.updateConfig(namespace, defaults, config);
   }
 
   /**
    * @param namespace
    * @param config
    * @param sub
+   * @param defaults
    * @param keys
    */
   private static updateConfig(
     namespace: string,
+    defaults: JSONValue,
     config: JSONObject,
-    sub: JSONValue,
     keys: string[] = [],
   ) {
-    if (Array.isArray(sub)) {
-      throw new TypeError('Arrays not yet supported');
-    }
-    if (typeof sub === 'object' && sub !== null) {
-      for (const key of Object.keys(sub)) {
-        EnvConfig.updateConfig(namespace, config, sub[key], keys.concat([key]));
+    if (Array.isArray(defaults)) {
+      EnvConfig.set(config, keys, EnvConfig.get(namespace, keys, defaults as Array<JSONPrimitive>));
+    } else if (typeof defaults === 'object' && defaults !== null) {
+      for (const key of Object.keys(defaults)) {
+        EnvConfig.updateConfig(namespace, defaults[key], config, keys.concat([key]));
       }
     } else {
-      EnvConfig.set(config, keys, EnvConfig.get(namespace, keys, sub));
+      EnvConfig.set(config, keys, EnvConfig.get(namespace, keys, defaults));
     }
   }
 
@@ -42,17 +42,17 @@ export class EnvConfig {
   private static get(
     namespace: string,
     keys: string[],
-    defaultValue: JSONPrimitive,
-  ): JSONPrimitive | undefined {
+    defaultValue: JSONPrimitive | Array<JSONPrimitive>,
+  ): JSONPrimitive | Array<JSONPrimitive> | undefined {
     let value;
     const unnamespacedOptionName = EnvConfig.formatKeys(keys);
     const namespacedOptionName = `${namespace.toLowerCase()}__${unnamespacedOptionName}`;
     for (const envVarName of Object.keys(EnvConfig.getProcessEnv())) {
       if (envVarName.includes(namespacedOptionName)) {
-        return Utils.formatValueFromString(defaultValue, EnvConfig.getStringValue(envVarName));
+        return EnvConfig.formatValueFromString(defaultValue, EnvConfig.getStringValue(envVarName));
       }
       if (envVarName.includes(unnamespacedOptionName)) {
-        value = Utils.formatValueFromString(defaultValue, EnvConfig.getStringValue(envVarName));
+        value = EnvConfig.formatValueFromString(defaultValue, EnvConfig.getStringValue(envVarName));
       }
     }
     return value;
@@ -81,7 +81,7 @@ export class EnvConfig {
    * @param keys
    * @param value
    */
-  private static set(config: JSONObject, keys: string[], value: JSONPrimitive | undefined) {
+  private static set(config: JSONObject, keys: string[], value: JSONPrimitive | Array<JSONPrimitive> | undefined) {
     if (value !== undefined) {
       let sub = config;
       for (const key of keys.slice(0, -1)) {
@@ -93,6 +93,19 @@ export class EnvConfig {
 
   private static getStringValue(envVarName: string): string {
     return EnvConfig.getProcessEnv()[envVarName];
+  }
+
+  static formatValueFromString(defaultValue: JSONPrimitive | Array<JSONPrimitive>, value: string): JSONPrimitive | Array<JSONPrimitive> {
+    if (typeof defaultValue === 'number') {
+      return +value;
+    }
+    if (typeof defaultValue === 'boolean') {
+      return ['true', '1', 'yes', 'on'].includes(value.toLowerCase());
+    }
+    if (Array.isArray(defaultValue)) {
+      return value.split(',');
+    }
+    return value;
   }
 
   /**

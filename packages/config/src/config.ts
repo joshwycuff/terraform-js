@@ -9,44 +9,47 @@ import { updateConfigFromFile } from './stores/file';
 import { updateConfigFromObject } from './stores/object';
 
 export class Config<T extends JSONObject = JSONObject> {
-  private props: T;
+  private defaults: T;
+
+  private config: T;
 
   private namespace;
 
   private customizer;
 
   constructor(defaults: T, namespace = '', customizer?: _.MergeWithCustomizer) {
-    this.props = _.cloneDeep(defaults);
+    this.defaults = _.cloneDeep(defaults);
+    this.config = _.cloneDeep(defaults);
     this.namespace = namespace;
     this.customizer = customizer;
   }
 
   peek() {
-    return this.props;
+    return this.config;
   }
 
   argv() {
-    ArgvConfig.updateConfigFromArgv(this.namespace, this.props);
+    ArgvConfig.updateConfigFromArgv(this.namespace, this.defaults, this.config);
     return this;
   }
 
   env() {
-    EnvConfig.updateConfigFromEnv(this.namespace, this.props);
+    EnvConfig.updateConfigFromEnv(this.namespace, this.defaults, this.config);
     return this;
   }
 
   object(obj: T) {
-    updateConfigFromObject(this.props, obj, this.customizer);
+    updateConfigFromObject(this.namespace, this.config, obj, this.customizer);
     return this;
   }
 
   file(filepath: string) {
-    updateConfigFromFile(this.props, filepath, this.customizer);
+    updateConfigFromFile(this.namespace, this.config, filepath, this.customizer);
     return this;
   }
 
   async fileSync(filepath: string) {
-    await updateConfigFromFile(this.props, filepath, this.customizer);
+    await updateConfigFromFile(this.namespace, this.config, filepath, this.customizer);
     return this;
   }
 
@@ -58,7 +61,7 @@ export class Config<T extends JSONObject = JSONObject> {
   }
 
   asStack(): MergeStack<T> {
-    return new MergeStack<T>(this.props, this.customizer);
+    return new MergeStack<T>(this.config, this.customizer);
   }
 }
 
@@ -67,12 +70,23 @@ export class Config<T extends JSONObject = JSONObject> {
  * @param namespace
  * @param customizer
  */
-export function config(
-  defaults: JSONObject,
+export function config<T extends JSONObject = JSONObject>(
+  defaults: T,
   namespace = '',
   customizer?: _.MergeWithCustomizer,
 ) {
-  return new Config(defaults, namespace, customizer);
+  return new Config<T>(defaults, namespace, customizer);
 }
 
-export const conf = config;
+/**
+ * @param defaults
+ * @param namespace
+ * @param customizer
+ */
+export function conf<T extends JSONObject = JSONObject>(
+  defaults: T,
+  namespace = '',
+  customizer?: _.MergeWithCustomizer,
+) {
+  return new Config<T>(defaults, namespace, customizer);
+}

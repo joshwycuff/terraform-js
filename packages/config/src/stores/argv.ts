@@ -1,36 +1,36 @@
 import { JSONObject, JSONPrimitive, JSONValue } from '@joshwycuff/types';
-import { Utils } from '../utils';
 
 export class ArgvConfig {
   /**
    * @param namespace
+   * @param defaults
    * @param config
    */
-  static updateConfigFromArgv(namespace: string, config: JSONObject) {
-    ArgvConfig.updateConfig(namespace, config, config);
+  static updateConfigFromArgv(namespace: string, defaults: JSONObject, config: JSONObject) {
+    ArgvConfig.updateConfig(namespace, defaults, config);
   }
 
   /**
    * @param namespace
+   * @param defaults
    * @param config
    * @param sub
    * @param keys
    */
   private static updateConfig(
     namespace: string,
+    defaults: JSONValue,
     config: JSONObject,
-    sub: JSONValue,
     keys: string[] = [],
   ) {
-    if (Array.isArray(sub)) {
-      throw new TypeError('Arrays not yet supported');
-    }
-    if (typeof sub === 'object' && sub !== null) {
-      for (const key of Object.keys(sub)) {
-        ArgvConfig.updateConfig(namespace, config, sub[key], keys.concat([key]));
+    if (Array.isArray(defaults)) {
+      ArgvConfig.set(config, keys, ArgvConfig.get(namespace, keys, defaults as JSONPrimitive[]));
+    } else if (typeof defaults === 'object' && defaults !== null) {
+      for (const key of Object.keys(defaults)) {
+        ArgvConfig.updateConfig(namespace, defaults[key], config, keys.concat([key]));
       }
     } else {
-      ArgvConfig.set(config, keys, ArgvConfig.get(namespace, keys, sub));
+      ArgvConfig.set(config, keys, ArgvConfig.get(namespace, keys, defaults));
     }
   }
 
@@ -42,17 +42,17 @@ export class ArgvConfig {
   private static get(
     namespace: string,
     keys: string[],
-    defaultValue: JSONPrimitive,
-  ): JSONPrimitive | undefined {
+    defaultValue: JSONPrimitive | Array<JSONPrimitive>,
+  ): JSONPrimitive | Array<JSONPrimitive> | undefined {
     let value;
     const unnamespacedOptionName = `--${ArgvConfig.formatKeys(keys)}`;
-    const namespacedOptionName = `--${namespace.toLowerCase()}--${unnamespacedOptionName}`;
+    const namespacedOptionName = `--${namespace.toLowerCase()}${unnamespacedOptionName}`;
     for (const arg of ArgvConfig.getProcessArgv()) {
-      if (arg.includes(namespacedOptionName)) {
-        return Utils.formatValueFromString(defaultValue, ArgvConfig.extractValue(arg));
+      if (arg === namespacedOptionName) {
+        return ArgvConfig.formatValueFromString(defaultValue, ArgvConfig.extractValue(arg));
       }
-      if (arg.includes(unnamespacedOptionName)) {
-        value = Utils.formatValueFromString(defaultValue, ArgvConfig.extractValue(arg));
+      if (arg === unnamespacedOptionName) {
+        value = ArgvConfig.formatValueFromString(defaultValue, ArgvConfig.extractValue(arg));
       }
     }
     return value;
@@ -80,7 +80,7 @@ export class ArgvConfig {
    * @param arg
    */
   private static extractValue(arg: string): string {
-    return arg.slice(arg.indexOf('=') + 1);
+    return arg.includes('=') ? arg.slice(arg.indexOf('=') + 1) : '';
   }
 
   /**
@@ -88,7 +88,11 @@ export class ArgvConfig {
    * @param keys
    * @param value
    */
-  private static set(config: JSONObject, keys: string[], value: JSONPrimitive | undefined) {
+  private static set(
+    config: JSONObject,
+    keys: string[],
+    value: JSONPrimitive | Array<JSONPrimitive> | undefined,
+  ) {
     if (value !== undefined) {
       let sub = config;
       for (const key of keys.slice(0, -1)) {
@@ -96,6 +100,19 @@ export class ArgvConfig {
       }
       sub[keys.slice(-1)[0]] = value;
     }
+  }
+
+  static formatValueFromString(defaultValue: JSONPrimitive | Array<JSONPrimitive>, value: string): JSONPrimitive | Array<JSONPrimitive> {
+    if (typeof defaultValue === 'number') {
+      return +value;
+    }
+    if (typeof defaultValue === 'boolean') {
+      return value === '' ? !defaultValue : ['true', '1', 'yes', 'on'].includes(value.toLowerCase());
+    }
+    if (Array.isArray(defaultValue)) {
+      return value.split(',');
+    }
+    return value;
   }
 
   /**

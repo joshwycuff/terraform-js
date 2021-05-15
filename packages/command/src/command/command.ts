@@ -66,7 +66,7 @@ export class Command {
    * @returns {Promise<string>} The stdout of the subprocess.
    */
   async execute(): Promise<string> {
-    log.debug(`Executing: "${this}"`);
+    log.verbose(`Executing: "${this}"`);
     log.debug(`cwd: ${this.options.cwd}`);
     log.silly(`env: ${JSON.stringify(this.options.env, null, 2)}`);
     return _execute(this.get(), this.options.cwd, this.options.env);
@@ -78,7 +78,7 @@ export class Command {
    * @returns {Promise<ExitCode>} The exit code of the subprocess.
    */
   async run(): Promise<ExitCode> {
-    log.debug(`Running: "${this}"`);
+    log.verbose(`Running: "${this}"`);
     log.debug(`cwd: ${this.options.cwd}`);
     log.silly(`env: ${JSON.stringify(this.options.env, null, 2)}`);
     const command = this.command.get();

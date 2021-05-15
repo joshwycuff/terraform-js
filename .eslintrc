@@ -1,0 +1,43 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "@typescript-eslint/eslint-plugin",
+    "unicorn",
+    "jsdoc"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:unicorn/recommended",
+    "plugin:jsdoc/recommended",
+    "airbnb-typescript"
+  ],
+  "rules": {
+    "unicorn/no-null": "off",
+    "indent": ["error", 2],
+    "@typescript-eslint/indent": ["error", 2],
+    "import/prefer-default-export": "off",
+    "object-curly-newline": "off",
+    "require-jsdoc": ["error", {
+      "require": {
+        "FunctionDeclaration": true,
+        "MethodDefinition": true,
+        "ClassDeclaration": true,
+        "ArrowFunctionExpression": false,
+        "FunctionExpression": false
+      }
+    }],
+    "unicorn/prevent-abbreviations": "off",
+    "no-underscore-dangle": "off",
+    "no-restricted-syntax": "off",
+    "no-await-in-loop": "off",
+    "unicorn/no-process-exit": "off",
+    "no-plusplus": "off",
+    "@typescript-eslint/naming-convention": "off"
+  }
+}

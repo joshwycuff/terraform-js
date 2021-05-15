@@ -39,11 +39,13 @@ async function getConfigFromYaml(config: JSONObject, filepath: string) {
 }
 
 /**
+ * @param namespace
  * @param config
  * @param filepath
  * @param customizer
  */
 export async function updateConfigFromFile(
+  namespace: string,
   config: JSONObject,
   filepath: string,
   customizer?: _.MergeWithCustomizer,
@@ -59,5 +61,5 @@ export async function updateConfigFromFile(
   } else {
     throw new Error(`Unsupported file type: ${ext}`);
   }
-  updateConfigFromObject(config, fileConfig, customizer);
+  updateConfigFromObject(namespace, config, fileConfig, customizer);
 }
