@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-plugin-template-expressions-v1.0.2](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-plugin-template-expressions-v1.0.1...@joshwycuff/terrascript-plugin-template-expressions-v1.0.2) (2021-05-23)
+
+
+### Bug Fixes
+
+* release files ([c1dc183](https://github.com/joshwycuff/terrascript/commit/c1dc183d62b73db5674b06105d9827d64dcd64d7))
+
 # [@joshwycuff/terrascript-plugin-template-expressions-v1.0.1](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-plugin-template-expressions-v1.0.0...@joshwycuff/terrascript-plugin-template-expressions-v1.0.1) (2021-05-23)
 
 
