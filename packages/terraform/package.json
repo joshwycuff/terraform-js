@@ -56,9 +56,9 @@
   },
   "dependencies": {
     "@jahed/terraform": ">= 0.12",
-    "@joshwycuff/command": "0.0.0",
-    "@joshwycuff/config": "0.0.0",
-    "@joshwycuff/types": "0.0.0",
+    "@joshwycuff/command": "^1.0",
+    "@joshwycuff/config": "^1.0",
+    "@joshwycuff/types": "^1.0",
     "lodash": "^4.17.20",
     "winston": "^3.3.3"
   },
