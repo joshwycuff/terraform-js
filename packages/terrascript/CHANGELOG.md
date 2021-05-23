@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-v1.0.3](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-v1.0.2...@joshwycuff/terrascript-v1.0.3) (2021-05-23)
+
+
+### Bug Fixes
+
+* sort lerna exec order ([d82ff3d](https://github.com/joshwycuff/terrascript/commit/d82ff3dffb042ee56af45b4ad866fa3b3aaad444))
+
 # [@joshwycuff/terrascript-v1.0.2](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-v1.0.1...@joshwycuff/terrascript-v1.0.2) (2021-05-23)
 
 
