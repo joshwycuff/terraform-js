@@ -15,7 +15,7 @@ jobs:
               with:
                   node-version: 12
             - name: Install dependencies
-              run: yarn install
+              run: yarn install && lerna bootstrap
 #            - name: Generate coverage report
 #              run: yarn test
 #              continue-on-error: true
