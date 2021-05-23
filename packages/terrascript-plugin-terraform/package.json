@@ -37,6 +37,25 @@
     "type": "git",
     "url": "https://github.com//joshwycuff/terrascript.git"
   },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      {
+        "path": "@semantic-release/git",
+        "assets": [
+          "package.json",
+          "yarn.lock",
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} \n\n${nextRelease.notes}"
+      }
+    ],
+    "extends": "semantic-release-monorepo"
+  },
   "dependencies": {
     "@joshwycuff/config": "0.0.0",
     "@joshwycuff/terraform": "0.0.0",

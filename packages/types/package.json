@@ -37,6 +37,25 @@
     "type": "git",
     "url": "https://github.com//joshwycuff/terrascript.git"
   },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      {
+        "path": "@semantic-release/git",
+        "assets": [
+          "package.json",
+          "yarn.lock",
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} \n\n${nextRelease.notes}"
+      }
+    ],
+    "extends": "semantic-release-monorepo"
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.13.8",
     "babel-jest": "^26.6.3",

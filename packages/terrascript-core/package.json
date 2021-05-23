@@ -74,7 +74,8 @@
         ],
         "message": "chore(release): ${nextRelease.version} \n\n${nextRelease.notes}"
       }
-    ]
+    ],
+    "extends": "semantic-release-monorepo"
   },
   "files": [
     "dist/"
