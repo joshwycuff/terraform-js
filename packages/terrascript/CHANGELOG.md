@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-v1.0.4](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-v1.0.3...@joshwycuff/terrascript-v1.0.4) (2021-05-23)
+
+
+### Bug Fixes
+
+* build before release ([06a5bae](https://github.com/joshwycuff/terrascript/commit/06a5baee645b9eb04825f4d915dac4903df64788))
+
 # [@joshwycuff/terrascript-v1.0.3](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-v1.0.2...@joshwycuff/terrascript-v1.0.3) (2021-05-23)
 
 
