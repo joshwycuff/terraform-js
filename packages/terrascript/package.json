@@ -82,13 +82,13 @@
     "dist/"
   ],
   "dependencies": {
-    "@joshwycuff/config": "^1.0",
-    "@joshwycuff/terrascript-core": "^1.0",
-    "@joshwycuff/terrascript-plugin-aliases": "^1.0",
-    "@joshwycuff/terrascript-plugin-groups": "^1.0",
-    "@joshwycuff/terrascript-plugin-modules": "^1.0",
-    "@joshwycuff/terrascript-plugin-template-expressions": "^1.0",
-    "@joshwycuff/types": "^1.0",
+    "@joshwycuff/config": "^1.x",
+    "@joshwycuff/terrascript-core": "^1.x",
+    "@joshwycuff/terrascript-plugin-aliases": "^1.x",
+    "@joshwycuff/terrascript-plugin-groups": "^1.x",
+    "@joshwycuff/terrascript-plugin-modules": "^1.x",
+    "@joshwycuff/terrascript-plugin-template-expressions": "^1.x",
+    "@joshwycuff/types": "^1.x",
     "glob": "^7.1.6",
     "js-yaml": "^4.0.0",
     "winston": "^3.3.3"

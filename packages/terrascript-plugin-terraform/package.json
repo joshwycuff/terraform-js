@@ -57,10 +57,10 @@
     "extends": "semantic-release-monorepo"
   },
   "dependencies": {
-    "@joshwycuff/config": "^1.0",
-    "@joshwycuff/terraform": "^1.0",
-    "@joshwycuff/terrascript-core": "^1.0",
-    "@joshwycuff/types": "^1.0",
+    "@joshwycuff/config": "^1.x",
+    "@joshwycuff/terraform": "^1.x",
+    "@joshwycuff/terrascript-core": "^1.x",
+    "@joshwycuff/types": "^1.x",
     "winston": "^3.3.3"
   },
   "devDependencies": {

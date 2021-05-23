@@ -57,7 +57,7 @@
     "extends": "semantic-release-monorepo"
   },
   "dependencies": {
-    "@joshwycuff/types": "^1.0",
+    "@joshwycuff/types": "^1.x",
     "lodash": "^4.17.20",
     "winston": "^3.3.3"
   },
