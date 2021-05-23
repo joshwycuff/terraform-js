@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@joshwycuff/command": "^1.0",
-    "@joshwycuff/config": "^0.0.0",
+    "@joshwycuff/config": "^1.0",
     "@joshwycuff/terrascript-core": "^1.0",
     "@joshwycuff/types": "^1.0",
     "winston": "^3.3.3"
