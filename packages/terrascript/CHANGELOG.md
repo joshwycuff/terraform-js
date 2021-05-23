@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-v1.0.1](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-v1.0.0...@joshwycuff/terrascript-v1.0.1) (2021-05-23)
+
+
+### Bug Fixes
+
+* trigger another publish ([b1bde2f](https://github.com/joshwycuff/terrascript/commit/b1bde2fe302dcf6ebc77e66064dd3cb1d3716381))
+
 # @joshwycuff/terrascript-v1.0.0 (2021-05-23)
 
 
