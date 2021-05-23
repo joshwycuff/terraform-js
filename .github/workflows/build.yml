@@ -28,4 +28,4 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-              run: lerna exec --concurrency 1 --scope @joshwycuff/terrascript-core -- npx --no-install semantic-release -e semantic-release-monorepo
+              run: lerna exec --concurrency 1 -- npx --no-install semantic-release -e semantic-release-monorepo
