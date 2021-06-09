@@ -10,8 +10,8 @@ import { TerrascriptPluginApi } from '../interfaces/plugin';
 
 export class TerrascriptRunner {
   static async run(context: IContext): Promise<void> {
-    await TerrascriptRunner._beforeAll(context);
     try {
+      await TerrascriptRunner._beforeAll(context);
       await SpecRunner.run(context);
       await TerrascriptRunner._afterSuccess(context);
     } catch (error) {

@@ -12,11 +12,11 @@ export class TargetPath {
     return isMatch(str, pattern);
   }
 
-  static next(specpath: string[]): string[] {
-    if (specpath.length > 1) {
-      return specpath.slice(1);
+  static next(targetPath: string[]): string[] {
+    if (targetPath.length > 1) {
+      return targetPath.slice(1);
     }
-    return specpath.slice(0);
+    return targetPath.slice(0);
   }
 
   static getTarget(specpath: string[]): string {
@@ -49,7 +49,7 @@ export class TargetPath {
         node = node.parent!;
       }
       parents.reverse();
-      return `${parents.join(TargetPath.D)}${TargetPath.D}${parts.join(TargetPath.D)}`;
+      return parents.concat(parts).join(TargetPath.D);
     }
     return targetPathString;
   }

@@ -3,7 +3,7 @@ import { TargetPath } from './target-path';
 import { log } from '../logging/logging';
 
 import { ActionRunner } from './action';
-import { withSpecPath, withSpecs, withTarget } from './context';
+import { withTargetPath, withSpecs, withTarget } from './context';
 import { TargetRunner } from './target';
 import { IConfig } from '../interfaces/config';
 import { ITarget } from '../interfaces/spec';
@@ -17,9 +17,10 @@ export class SpecRunner {
       await SpecRunner._beforeSubproject(context);
     }
     if (SpecRunner.shouldRunSubprojects(context)) {
-      await withSpecPath<ISubprojectContext>(TargetPath.next(context.targetPath), async (cntxt) => {
-        await SpecRunner.runSubprojects(cntxt);
-      });
+      await withTargetPath<ISubprojectContext>(TargetPath.next(context.targetPath),
+        async (cntxt) => {
+          await SpecRunner.runSubprojects(cntxt);
+        });
     }
     if (SpecRunner.shouldRun(context)) {
       await SpecRunner._runSubproject(context);
@@ -76,7 +77,7 @@ export class SpecRunner {
   }
 
   static async _runSubproject(context: ISubprojectContext) {
-    await withSpecPath<ISubprojectContext>(TargetPath.next(context.targetPath), async (cntxt) => {
+    await withTargetPath<ISubprojectContext>(TargetPath.next(context.targetPath), async (cntxt) => {
       await SpecRunner.runTargets(cntxt);
     });
   }

@@ -25,6 +25,9 @@ function customizer(objValue: any, srcValue: any, key: string, something: any): 
   if (key === 'subprojects') {
     return srcValue;
   }
+  if (key === 'targetPath') {
+    return srcValue;
+  }
   if (key === 'targets') {
     const objClone = cloneDeep(objValue || {});
     const srcClone = cloneDeep(srcValue || {});
@@ -95,15 +98,15 @@ export async function withSpecs<T extends IRootContext>(
 }
 
 /**
- * @param specpath
+ * @param targetPath
  * @param func
  */
-export async function withSpecPath<T extends IRootContext>(
-  specpath: string[],
+export async function withTargetPath<T extends IRootContext>(
+  targetPath: string[],
   func: (context: T) => Promise<void>,
 ): Promise<void> {
-  log.silly(`with spec path "${specpath.join('/')}"`);
-  const contexts: T[] = [{ specpath } as unknown as T];
+  log.silly(`with target path "${targetPath.join('/')}"`);
+  const contexts: T[] = [{ targetPath } as IRootContext as unknown as T];
   await withContexts<T>(contexts, func);
 }
 
