@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-core-v1.0.2](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-core-v1.0.1...@joshwycuff/terrascript-core-v1.0.2) (2021-06-09)
+
+
+### Bug Fixes
+
+* **terrascript-core:** target path bug ([0b09658](https://github.com/joshwycuff/terrascript/commit/0b0965855e4774de5d59a86a3de5f7610b4bae85))
+
 # [@joshwycuff/terrascript-core-v1.0.1](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-core-v1.0.0...@joshwycuff/terrascript-core-v1.0.1) (2021-05-23)
 
 
