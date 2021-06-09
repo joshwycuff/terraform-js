@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-plugin-aws-secrets-v1.0.3](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-plugin-aws-secrets-v1.0.2...@joshwycuff/terrascript-plugin-aws-secrets-v1.0.3) (2021-06-09)
+
+
+### Bug Fixes
+
+* execute aws secrets plugin before action ([4ea5cbe](https://github.com/joshwycuff/terrascript/commit/4ea5cbe8d264c9ebac467b7d75bc7f1724895783))
+
 # [@joshwycuff/terrascript-plugin-aws-secrets-v1.0.2](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-plugin-aws-secrets-v1.0.1...@joshwycuff/terrascript-plugin-aws-secrets-v1.0.2) (2021-05-23)
 
 
