@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk';
 
 import { Hash, JSONObject } from '@joshwycuff/types';
-import { ISubprojectContext, TerrascriptPlugin } from '@joshwycuff/terrascript-core';
+import { IActionContext, TerrascriptPlugin } from '@joshwycuff/terrascript-core';
 import { log } from './logging';
 
 /* eslint-disable no-param-reassign */
@@ -15,36 +15,30 @@ interface iAwsSecret extends JSONObject {
   jsonKey: string
 }
 
-type iAwsSecrets = iAwsSecret[];
+type iAwsSecrets = Hash<iAwsSecret>;
 
 const cache: Hash<string> = {};
 
 export default class AwsSecrets implements TerrascriptPlugin {
-  static async beforeSubproject(context: ISubprojectContext): Promise<void> {
+  static async beforeAction(context: IActionContext): Promise<void> {
     const { spec } = context;
     spec.aws = spec.aws || {};
     const aws = spec.aws as JSONObject;
-    aws.secrets = aws.secrets || [];
+    aws.secrets = aws.secrets || {} as iAwsSecrets;
     const promises = [];
-    for (const secret of aws.secrets as iAwsSecrets) {
-      if (AwsSecrets.shouldGetSecretValue(context, secret)) {
-        promises.push(AwsSecrets.getAndSetSecretValue(context, secret));
-      }
+    for (const [key, secret] of Object.entries(aws.secrets)) {
+      promises.push(AwsSecrets.getAndSetSecretValue(context, key, secret));
     }
     await Promise.all(promises);
   }
 
-  static shouldGetSecretValue(context: ISubprojectContext, secret: iAwsSecret): boolean {
-    return !(secret.envName in context.spec.config.env);
-  }
-
-  static async getAndSetSecretValue(context: ISubprojectContext, secret: iAwsSecret) {
+  static async getAndSetSecretValue(context: IActionContext, key: string, secret: iAwsSecret) {
     const secretValue = await AwsSecrets.getSecretValue(context, secret);
     context.spec.config.env[secret.envName] = secretValue;
   }
 
   private static async getSecretValue(
-    context: ISubprojectContext,
+    context: IActionContext,
     secret: iAwsSecret,
   ): Promise<string> {
     let secretString;
@@ -61,7 +55,7 @@ export default class AwsSecrets implements TerrascriptPlugin {
   }
 
   private static async getSecretValueFromAws(
-    context: ISubprojectContext,
+    context: IActionContext,
     secret: iAwsSecret,
   ): Promise<string> {
     const profile = secret.profile || context.spec.config.env.AWS_PROFILE;
