@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-plugin-git-v1.1.0](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-plugin-git-v1.0.2...@joshwycuff/terrascript-plugin-git-v1.1.0) (2021-07-07)
+
+
+### Features
+
+* **terrascript-plugin-git:** new option to create environment variables from commands ([8485451](https://github.com/joshwycuff/terrascript/commit/8485451d4c933e8f5bd6a2a2b5874a55b21c5858))
+
 # [@joshwycuff/terrascript-plugin-git-v1.0.2](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-plugin-git-v1.0.1...@joshwycuff/terrascript-plugin-git-v1.0.2) (2021-05-23)
 
 
