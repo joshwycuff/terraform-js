@@ -15,9 +15,8 @@ export class TerrascriptRunner {
       await SpecRunner.run(context);
       await TerrascriptRunner._afterSuccess(context);
     } catch (error) {
-      log.error(error);
-      log.error(error.stack);
       await TerrascriptRunner._afterFailure(context);
+      throw error;
     }
   }
 
