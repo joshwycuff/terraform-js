@@ -1,3 +1,10 @@
+# [@joshwycuff/command-v1.1.0](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/command-v1.0.2...@joshwycuff/command-v1.1.0) (2021-07-15)
+
+
+### Features
+
+* **command:** implement detach functionality ([292217e](https://github.com/joshwycuff/terrascript/commit/292217e072f93a3b76790038ba252d6a4c50e99e))
+
 # [@joshwycuff/command-v1.0.2](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/command-v1.0.1...@joshwycuff/command-v1.0.2) (2021-05-23)
 
 
