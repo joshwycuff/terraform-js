@@ -1,3 +1,10 @@
+# [@joshwycuff/terrascript-core-v1.1.0](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-core-v1.0.3...@joshwycuff/terrascript-core-v1.1.0) (2021-07-15)
+
+
+### Features
+
+* **terrascript-core:** implement detached functionality ([d51eebe](https://github.com/joshwycuff/terrascript/commit/d51eebe5339d18502fcbbeac15276d2e93b314f9))
+
 # [@joshwycuff/terrascript-core-v1.0.3](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/terrascript-core-v1.0.2...@joshwycuff/terrascript-core-v1.0.3) (2021-07-08)
 
 
