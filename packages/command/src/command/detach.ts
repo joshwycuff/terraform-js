@@ -5,7 +5,7 @@ import { log } from './logging';
 import { expand } from './expand';
 
 /**
- * Execute a command in a subprocess and return exit code.
+ * Execute a command in the background and return exit code.
  *
  * @param {string} command - The command to run.
  * @param {string[]} args - List of string arguments.
@@ -15,12 +15,12 @@ import { expand } from './expand';
  * @param handlers
  * @returns {ExitCode} The exit code of the subprocess.
  */
-export async function run(
+export async function detach(
   command: string,
   args: string[] = [],
   cwd?: string,
   env?: Hash,
-  stdio: StdioOptions = 'inherit',
+  stdio: StdioOptions = 'ignore',
   handlers: Hash<Hash<any>> = {},
 ): Promise<ExitCode> {
   log.silly(
@@ -37,6 +37,7 @@ export async function run(
       cwd,
       env,
       stdio,
+      detached: true,
     });
     child.on('exit', (code) => {
       if (code === 0) {

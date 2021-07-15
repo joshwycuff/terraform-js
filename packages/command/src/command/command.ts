@@ -2,6 +2,7 @@ import { StdioOptions } from 'child_process';
 import { Hash } from '@joshwycuff/types';
 import { execute as _execute } from './execute';
 import { run as _run } from './run';
+import { detach as _detach } from './detach';
 import { CommandCommand, CommandCommandLike } from './command-command';
 import { CommandArguments, CommandArgumentsLike } from './command-arguments';
 import { log } from './logging';
@@ -94,6 +95,27 @@ export class Command {
   }
 
   /**
+   * Execute the command in the background.
+   *
+   * @returns {Promise<ExitCode>} The exit code of the subprocess.
+   */
+  async detach(): Promise<ExitCode> {
+    log.verbose(`Detaching: "${this}"`);
+    log.debug(`cwd: ${this.options.cwd}`);
+    log.silly(`env: ${JSON.stringify(this.options.env, null, 2)}`);
+    const command = this.command.get();
+    const args = this.args.getArray();
+    return _detach(
+      command,
+      args,
+      this.options.cwd,
+      this.options.env,
+      this.options.stdio,
+      this.options.handlers,
+    );
+  }
+
+  /**
    * Create a Command instance from a string
    *
    * @param {string} str - A command string
@@ -138,4 +160,20 @@ export async function run(
   options?: CommandOptions,
 ): Promise<ExitCode> {
   return new Command(command, args, options).run();
+}
+
+/**
+ * Execute the command in the background.
+ *
+ * @param {CommandCommandLike} command - The main command to be run.
+ * @param {CommandArgumentsLike} args - Subcommands, arguments, flags, and options.
+ * @param {CommandOptions} options - Subprocess options (cwd and env).
+ * @returns {Promise<ExitCode>} The exit code of the subprocess.
+ */
+export async function detach(
+  command: CommandCommandLike,
+  args?: CommandArgumentsLike,
+  options?: CommandOptions,
+): Promise<ExitCode> {
+  return new Command(command, args, options).detach();
 }
