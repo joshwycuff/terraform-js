@@ -11,6 +11,7 @@ export interface IActionCommand {
   cmd: string,
   args?: string[],
   env?: Hash<string>,
+  detached?: JSONObject,
 }
 
 export type IActions = Hash<IAction>;

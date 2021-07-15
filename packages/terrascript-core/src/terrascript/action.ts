@@ -8,6 +8,8 @@ import { _IActions, IAction, IActionCommand } from '../interfaces/spec';
 import { shouldRunAction } from '../utils/action';
 import { TerrascriptPluginApi } from '../interfaces/plugin';
 
+export const detachedActions: Promise<any>[] = [];
+
 /**
  * TODO
  */
@@ -90,9 +92,11 @@ export class ActionRunner {
     }
   }
 
+  // eslint-disable-next-line consistent-return,require-jsdoc
   private static async _runCommand(
     context: IActionContext,
-  ) {
+    detached = false,
+  ): Promise<any> {
     const env: Hash = {};
     merge(
       env,
@@ -100,17 +104,27 @@ export class ActionRunner {
       cloneDeep(context.conf.env),
       cloneDeep(context.spec.config.env),
     );
+    let command: Command;
     if (typeof context.action === 'string') {
-      const command = Command.fromString(context.action, { env });
-      await command.run();
+      command = Command.fromString(context.action, { env });
     } else {
       const action = context.action as unknown as IActionCommand;
+      if ('detached' in action) {
+        return ActionRunner._runCommand({
+          ...context,
+          action: action.detached as IAction,
+        }, true);
+      }
       if (!('cmd' in action)) {
         throw new TypeError('Action missing required cmd field');
       }
       const { cmd, args } = action;
-      const command = new Command(cmd, args || [], { env });
-      await command.run();
+      command = new Command(cmd, args || [], { env });
+    }
+    if (detached) {
+      detachedActions.push(command.detach());
+    } else {
+      return command.run();
     }
   }
 

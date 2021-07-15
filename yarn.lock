@@ -1255,17 +1255,6 @@
     rimraf "^3.0.2"
     yauzl "^2.10.0"
 
-"@jahed/terraform@^0.15.0":
-  version "0.15.0"
-  resolved "https://registry.npmjs.org/@jahed/terraform/-/terraform-0.15.0.tgz#f8beba0bf61ec67e17bc7c5b3127c1410d7c39dd"
-  integrity sha512-LhLKghbMdxSSLSLAmNnih0x0iSUvLeSPMrtLjPxybJhyaTku5FX+FkpkOPXGb8zNwVOalc+dhpiItAkxDLwd4g==
-  dependencies:
-    "@jahed/promises" "^1.0.2"
-    find-cache-dir "^3.3.1"
-    node-fetch "^2.6.1"
-    rimraf "^3.0.2"
-    yauzl "^2.10.0"
-
 "@jest/console@^26.6.2":
   version "26.6.2"
   resolved "https://registry.npmjs.org/@jest/console/-/console-26.6.2.tgz#4e04bc464014358b03ab4937805ee36a0aeb98f2"

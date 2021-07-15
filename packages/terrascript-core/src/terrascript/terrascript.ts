@@ -1,5 +1,5 @@
 import { IContext, ISubprojectContext } from '../interfaces/context';
-import { ActionRunner } from './action';
+import { ActionRunner, detachedActions } from './action';
 import { TargetPath } from './target-path';
 import { SpecRunner } from './spec';
 import { log } from '../logging/logging';
@@ -13,6 +13,7 @@ export class TerrascriptRunner {
     try {
       await TerrascriptRunner._beforeAll(context);
       await SpecRunner.run(context);
+      await Promise.all(detachedActions);
       await TerrascriptRunner._afterSuccess(context);
     } catch (error) {
       await TerrascriptRunner._afterFailure(context);
