@@ -63,6 +63,23 @@ export class Config<T extends JSONObject = JSONObject> {
   asStack(): MergeStack<T> {
     return new MergeStack<T>(this.config, this.customizer);
   }
+
+  // eslint-disable-next-line require-jsdoc
+  static async withConfigs<U, V>(
+    stack: MergeStack<U>,
+    configs: U[],
+    func: (c: U) => Promise<V>,
+  ): Promise<V> {
+    for (const c of configs) {
+      stack.push(c);
+    }
+    const result = await func(stack.peek() as U);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const c of configs) {
+      stack.pop();
+    }
+    return result;
+  }
 }
 
 /**
