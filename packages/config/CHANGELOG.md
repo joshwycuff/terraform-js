@@ -1,3 +1,10 @@
+# [@joshwycuff/config-v1.1.0](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/config-v1.0.2...@joshwycuff/config-v1.1.0) (2021-07-19)
+
+
+### Features
+
+* **config:** implement withConfigs utility function ([8aa438a](https://github.com/joshwycuff/terrascript/commit/8aa438adc40515dd01fd77bfabe8eb871ef87a4b))
+
 # [@joshwycuff/config-v1.0.2](https://github.com/joshwycuff/terrascript/compare/@joshwycuff/config-v1.0.1...@joshwycuff/config-v1.0.2) (2021-05-23)
 
 
