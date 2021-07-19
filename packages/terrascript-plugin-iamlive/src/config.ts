@@ -26,7 +26,9 @@ export interface IConfig extends JSONObject {
   profile: string;
   setIni: boolean;
   sortAlphabetical: boolean;
-  stdio: string;
+  stdin: string;
+  stdout: string;
+  stderr: string;
   autoStart: boolean;
   autoStop: boolean;
 }
@@ -42,7 +44,9 @@ const defaults = {
   detached: true,
   enabled: true,
   mode: 'csm',
-  stdio: 'ignore',
+  stdin: 'ignore',
+  stdout: 'ignore',
+  stderr: 'inherit',
   outputFile: 'iamlive-policy.json',
   autoStart: false,
   autoStop: true,

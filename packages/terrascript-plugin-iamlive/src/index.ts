@@ -90,7 +90,7 @@ export default class Iamlive implements TerrascriptPlugin {
       const args = Iamlive.getArgs(conf);
       log.debug(`Spawing: iamlive ${args.join(' ')}`);
       iamliveSubprocess = spawn('iamlive', args, {
-        stdio: conf.stdio as StdioOptions,
+        stdio: [conf.stdin, conf.stdout, conf.stderr] as StdioOptions,
         detached: conf.detached,
       });
     }
@@ -150,16 +150,16 @@ export default class Iamlive implements TerrascriptPlugin {
   }
 
   private static modifyContext(context: IContext, conf: IConfig) {
-    previousAwsCsmEnabled = context.conf.env.AWS_CSM_ENABLED;
-    previousAwsCaBundle = context.conf.env.AWS_CA_BUNDLE;
-    previousHttpProxy = context.conf.env.HTTP_PROXY;
-    previousHttpsProxy = context.conf.env.HTTPS_PROXY;
+    previousAwsCsmEnabled = context.spec.config.env.AWS_CSM_ENABLED;
+    previousAwsCaBundle = context.spec.config.env.AWS_CA_BUNDLE;
+    previousHttpProxy = context.spec.config.env.HTTP_PROXY;
+    previousHttpsProxy = context.spec.config.env.HTTPS_PROXY;
     if (conf.mode === 'csm') {
-      context.conf.env.AWS_CSM_ENABLED = 'true';
+      context.spec.config.env.AWS_CSM_ENABLED = 'true';
     } else if (conf.mode === 'proxy') {
-      context.conf.env.AWS_CA_BUNDLE = '~/.iamlive/ca.pem';
-      context.conf.env.HTTP_PROXY = 'http://127.0.0.1:10080';
-      context.conf.env.HTTPS_PROXY = 'http://127.0.0.1:10080';
+      context.spec.config.env.AWS_CA_BUNDLE = `${process.env.HOME}/.iamlive/ca.pem`;
+      context.spec.config.env.HTTP_PROXY = 'http://127.0.0.1:10080';
+      context.spec.config.env.HTTPS_PROXY = 'http://127.0.0.1:10080';
     }
   }
 
@@ -172,9 +172,9 @@ export default class Iamlive implements TerrascriptPlugin {
   }
 
   private static revertContext(context: IContext) {
-    context.conf.env.AWS_CSM_ENABLED = previousAwsCsmEnabled;
-    context.conf.env.AWS_CA_BUNDLE = previousAwsCaBundle;
-    context.conf.env.HTTP_PROXY = previousHttpProxy;
-    context.conf.env.HTTPS_PROXY = previousHttpsProxy;
+    context.spec.config.env.AWS_CSM_ENABLED = previousAwsCsmEnabled;
+    context.spec.config.env.AWS_CA_BUNDLE = previousAwsCaBundle;
+    context.spec.config.env.HTTP_PROXY = previousHttpProxy;
+    context.spec.config.env.HTTPS_PROXY = previousHttpsProxy;
   }
 }
